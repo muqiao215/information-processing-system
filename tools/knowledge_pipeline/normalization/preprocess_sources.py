@@ -236,6 +236,11 @@ def source_candidates(item: dict[str, Any], reason: str) -> list[tuple[str, str]
             candidates.append(("defuddle_abs", defuddle_url(abs_url)))
         return candidates
 
+    if reason == "pdf_document":
+        if url:
+            candidates.append(("jina_reader_pdf", jina_url(url)))
+        return candidates
+
     if reason == "raw_github_text":
         if url:
             candidates.append(("jina_reader_raw", jina_url(url)))

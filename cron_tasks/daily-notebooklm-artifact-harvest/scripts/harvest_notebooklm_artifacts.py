@@ -14,8 +14,23 @@ from typing import Any
 from zoneinfo import ZoneInfo
 
 
-WORKSPACE = Path(__file__).resolve().parents[3]
-NOTEBOOKLM_CLI_DIR = WORKSPACE / "notebooklm-cdp-cli"
+REPO_ROOT = Path(__file__).resolve().parents[3]
+
+
+def resolve_workspace_root(start: Path | None = None) -> Path:
+    start = (start or REPO_ROOT).resolve()
+    for candidate in [start, *start.parents]:
+        if (candidate / "notebooklm-cdp-cli").exists():
+            return candidate
+    return start
+
+
+def resolve_notebooklm_cli_dir(start: Path | None = None) -> Path:
+    return resolve_workspace_root(start) / "notebooklm-cdp-cli"
+
+
+WORKSPACE = resolve_workspace_root()
+NOTEBOOKLM_CLI_DIR = resolve_notebooklm_cli_dir(WORKSPACE)
 OUTPUT_DIR = WORKSPACE / "output_to_user"
 DEFAULT_TRIGGER_METADATA = OUTPUT_DIR / "notebooklm_artifact_trigger_latest.json"
 DEFAULT_ARTIFACT_ROOT = OUTPUT_DIR / "information_pipeline" / "artifacts"
@@ -104,6 +119,15 @@ def run_command(args: list[str], cwd: Path | None = None, timeout: float | None 
             stdout=exc.stdout or "",
             stderr=(exc.stderr or "") + f"\nTimed out after {timeout}s",
             json_payload=parse_json(exc.stdout or ""),
+        )
+    except FileNotFoundError as exc:
+        missing_target = exc.filename or (str(cwd) if cwd else args[0])
+        return CommandResult(
+            args=args,
+            returncode=127,
+            stdout="",
+            stderr=f"{exc.strerror}: {missing_target}",
+            json_payload=None,
         )
 
 

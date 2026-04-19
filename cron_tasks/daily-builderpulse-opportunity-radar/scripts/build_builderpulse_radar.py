@@ -19,6 +19,30 @@ DEFAULT_JSON_OUT = Path(
 RAW_BASE_URL = "https://raw.githubusercontent.com/BuilderPulse/BuilderPulse/main"
 SECTION_ORDER = ["发现机会", "技术选型", "竞争情报", "趋势判断"]
 DISPLAY_LIMIT_PER_SECTION = 2
+LANGUAGE_CONFIG = {
+    "zh": {
+        "headline_heading": "📝 刘小排说",
+        "build_heading": "🎯 今日 2 小时构建",
+        "signals_heading": "今日 Top 3 信号",
+        "section_order": SECTION_ORDER,
+        "labels": {
+            "signal": "🔍 信号",
+            "key_judgment": "关键判断",
+            "contrarian_view": "反向视角",
+        },
+    },
+    "en": {
+        "headline_heading": "📝 Liu Xiaopai says",
+        "build_heading": "🎯 Today's one 2-hour build",
+        "signals_heading": "Top 3 signals",
+        "section_order": ["Discovery", "Tech Radar"],
+        "labels": {
+            "signal": "🔍 Signal",
+            "key_judgment": "Key Judgment",
+            "contrarian_view": "Counter-view",
+        },
+    },
+}
 
 
 def parse_args() -> argparse.Namespace:
@@ -85,17 +109,21 @@ def section_body(text: str, heading: str) -> str:
     return match.group(1).strip() if match else ""
 
 
-def extract_headline(text: str) -> str:
+def config_for_language(language: str) -> dict:
+    return LANGUAGE_CONFIG.get(language, LANGUAGE_CONFIG["zh"])
+
+
+def extract_headline(text: str, config: dict) -> str:
     match = re.search(r"^\*\*(?:今日|Today):\s*(.+?)\*\*$", text, flags=re.MULTILINE)
     if match:
         return normalize_whitespace(match.group(1))
-    intro = section_body(text, "📝 刘小排说")
+    intro = section_body(text, config["headline_heading"])
     first_paragraph = intro.split("\n\n", 1)[0] if intro else ""
     return normalize_whitespace(first_paragraph)
 
 
-def extract_build_idea(text: str) -> str:
-    body = section_body(text, "🎯 今日 2 小时构建")
+def extract_build_idea(text: str, config: dict) -> str:
+    body = section_body(text, config["build_heading"])
     match = re.search(r"^\*\*(.+?)\*\*\s+—\s+(.+)$", body, flags=re.MULTILINE)
     if not match:
         return ""
@@ -104,8 +132,8 @@ def extract_build_idea(text: str) -> str:
     return f"{name} — {desc}"
 
 
-def extract_top_signals(text: str) -> list[str]:
-    body = section_body(text, "今日 Top 3 信号")
+def extract_top_signals(text: str, config: dict) -> list[str]:
+    body = section_body(text, config["signals_heading"])
     body = body.split("\n---", 1)[0]
     signals: list[str] = []
     for match in re.finditer(r"^\d+\.\s+(.+?)(?=^\d+\.|\Z)", body, flags=re.MULTILINE | re.DOTALL):
@@ -117,16 +145,17 @@ def extract_top_signals(text: str) -> list[str]:
 
 def extract_labeled_text(block: str, label: str) -> str:
     match = re.search(
-        rf"\*\*{re.escape(label)}\*\*：\s*(.+?)(?=\n\*\*[^*]+?\*\*：|\Z)",
+        rf"\*\*{re.escape(label)}\*\*[：:]\s*(.+?)(?=\n\*\*[^*]+?\*\*[：:]|\Z)",
         block,
         flags=re.DOTALL,
     )
     return normalize_whitespace(match.group(1)) if match else ""
 
 
-def extract_opportunity_sections(text: str) -> list[dict]:
+def extract_opportunity_sections(text: str, config: dict) -> list[dict]:
     items: list[dict] = []
-    for section_name in SECTION_ORDER:
+    labels = config["labels"]
+    for section_name in config["section_order"]:
         body = section_body(text, section_name)
         if not body:
             continue
@@ -137,9 +166,9 @@ def extract_opportunity_sections(text: str) -> list[dict]:
                 {
                     "section": section_name,
                     "question": question,
-                    "signal": extract_labeled_text(block, "🔍 信号"),
-                    "key_judgment": extract_labeled_text(block, "关键判断"),
-                    "contrarian_view": extract_labeled_text(block, "反向视角"),
+                    "signal": extract_labeled_text(block, labels["signal"]),
+                    "key_judgment": extract_labeled_text(block, labels["key_judgment"]),
+                    "contrarian_view": extract_labeled_text(block, labels["contrarian_view"]),
                 }
             )
     return items
@@ -148,19 +177,21 @@ def extract_opportunity_sections(text: str) -> list[dict]:
 def parse_report(report_path: Path, report_url: str) -> dict:
     text = report_path.read_text(encoding="utf-8")
     title_match = re.search(r"^#\s+(.+)$", text, flags=re.MULTILINE)
+    language = report_path.parts[-3]
+    config = config_for_language(language)
     return {
         "source": "builderpulse",
         "repo": "BuilderPulse/BuilderPulse",
-        "language": report_path.parts[-3],
+        "language": language,
         "date": report_path.stem,
         "title": normalize_whitespace(title_match.group(1)) if title_match else report_path.stem,
-        "headline": extract_headline(text),
-        "build_idea": extract_build_idea(text),
+        "headline": extract_headline(text, config),
+        "build_idea": extract_build_idea(text, config),
         "report_url": report_url,
         "local_path": str(report_path),
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "top_signals": extract_top_signals(text),
-        "opportunity_sections": extract_opportunity_sections(text),
+        "top_signals": extract_top_signals(text, config),
+        "opportunity_sections": extract_opportunity_sections(text, config),
     }
 
 

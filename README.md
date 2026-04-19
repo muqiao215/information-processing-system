@@ -2,9 +2,9 @@
 
 Local information processing system extracted from the Ductor workspace.
 
-This repository is the standalone home for the pipeline that turns heterogeneous
-information sources into a canonical `knowledge_pack`, then drives NotebookLM
-report generation and artifact lifecycle steps.
+This repository is the standalone code home for the pipeline that turns
+heterogeneous information sources into a canonical `knowledge_pack`, then
+drives NotebookLM report generation and artifact lifecycle steps.
 
 ## Scope
 
@@ -35,5 +35,7 @@ report generation and artifact lifecycle steps.
 
 - This repo intentionally excludes runtime outputs from `output_to_user/`.
 - Browser/runtime-specific login state is not stored here.
+- Runtime execution still expects sibling Ductor workspace resources such as
+  `output_to_user/`, `vendor/BuilderPulse/`, and `notebooklm-cdp-cli/`.
 - The Obsidian/ops-facing reference set is also synced from this repo shape into
   `ops-vault`.
