@@ -1,0 +1,74 @@
+# Daily Knowledge Pack Builder
+
+## Goal
+
+Build the phase-1 knowledge pack from AI builders digest, BuilderPulse opportunity radar, and arXiv LLM memory discovery manifests.
+
+## Assignment
+
+This task is the normalization and phase-2 preprocessing layer between
+acquisition cron tasks and downstream knowledge digestion.
+
+It reads existing acquisition manifests, normalizes them into a canonical
+`knowledge_pack`, and pre-processes known NotebookLM URL-ingest troublemakers
+into local markdown/text before writing dated plus latest outputs.
+
+Allowed write targets:
+- `/root/.ductor/workspace/output_to_user`
+
+Execution steps:
+1. Read this task's memory file.
+2. Confirm the three upstream manifest paths and note which exist:
+   - `/root/.ductor/workspace/output_to_user/ai_builders_digest_sources_latest.json`
+   - `/root/.ductor/workspace/output_to_user/builderpulse_opportunity_radar_sources_latest.json`
+   - `/root/.ductor/workspace/output_to_user/arxiv_llm_memory_discovery_latest.json`
+3. Run the canonical builder:
+   - `cd /root/.ductor/workspace && python3 tools/knowledge_pipeline/normalization/build_knowledge_pack.py`
+4. The builder must:
+   - normalize `follow-builders` selected sources
+   - normalize `BuilderPulse` opportunity radar selected sections
+   - normalize the selected `arxiv-llm-memory-discovery` paper when present
+   - pre-process `x.com`, `raw.githubusercontent.com`, and arXiv PDF sources
+     into local markdown/text when possible
+   - put local `markdown_file` import targets before direct URL targets
+   - record each item's `preprocess` metadata and `local_text_path`
+   - write fallback markdown containing enough text for NotebookLM when URL import fails
+   - continue if one upstream manifest is missing, but fail if all upstream manifests are missing or empty
+5. Verify these files exist:
+   - `/root/.ductor/workspace/output_to_user/knowledge_pack_latest.json`
+   - `/root/.ductor/workspace/output_to_user/knowledge_pack_latest.md`
+   - `/root/.ductor/workspace/output_to_user/knowledge_pack_YYYYMMDD.json`
+   - `/root/.ductor/workspace/output_to_user/knowledge_pack_YYYYMMDD.md`
+   - `/root/.ductor/workspace/output_to_user/information_pipeline/bundles/YYYY-MM-DD/knowledge_pack.json`
+   - `/root/.ductor/workspace/output_to_user/information_pipeline/bundles/YYYY-MM-DD/knowledge_pack.md`
+   - `/root/.ductor/workspace/output_to_user/information_pipeline/preprocessed/YYYY-MM-DD/*.md`
+6. Parse `/root/.ductor/workspace/output_to_user/knowledge_pack_latest.json` and verify:
+   - `item_count` equals `len(items)`
+   - every item has `item_id`, `source_id`, `title`, `summary`, `import_targets`,
+     `import_policy`, `preprocess`, and `fallback_content`
+   - `source_counts` is present
+   - `preprocessing_summary` is present
+7. Report missing upstream manifests as warnings, not as failure, unless no items were produced.
+
+Important:
+- Do not call external messaging tools.
+- Do not create NotebookLM notebooks here.
+- Do not trigger reports, videos, slide decks, or publishing here.
+- This job should not use Chrome or NotebookLM browser resources.
+- Phase-2 preprocessing may use public no-key fetch routes such as `r.jina.ai`
+  and `defuddle.md`, plus direct browser-like fetch fallback. Do not add paid
+  API keys or new authentication requirements for this task.
+- `knowledge_pack_latest.json` is now the canonical input for downstream
+  `daily-notebooklm-content-gen`.
+
+## Output
+
+Return a concise Chinese result:
+- 哪些 upstream manifest 存在 / 缺失
+- `knowledge_pack_latest.json` 是否写入成功
+- `knowledge_pack_latest.md` 是否写入成功
+- 日期化 pipeline 路径是否写入成功
+- phase-2 preprocessing 本地化了哪些 source_type
+- `item_count`
+- `source_counts`
+- 如果失败：明确 blocker 和原始错误
