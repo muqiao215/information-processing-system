@@ -6,6 +6,10 @@ This repository is the standalone code home for the pipeline that turns
 heterogeneous information sources into a canonical `knowledge_pack`, then
 drives NotebookLM report generation and artifact lifecycle steps.
 
+The upstream acquisition path is now documented as an explicit local layer:
+
+`source contract -> acquisition recipe -> tool adapters -> run ledger -> structured extraction -> knowledge_pack`
+
 ## Scope
 
 - Source-oriented contracts and reference docs:
@@ -21,15 +25,29 @@ drives NotebookLM report generation and artifact lifecycle steps.
    - `ai-builders-digest-5briefs`
    - `daily-builderpulse-opportunity-radar`
    - `daily-arxiv-llm-memory-discovery`
-2. Normalization
+2. Acquisition orchestration
+   - selects an acquisition recipe per source item or content type
+   - runs local-first tool adapters
+   - records attempts and outcomes in a run ledger
+   - promotes stable structured results into `knowledge_pack`
+3. Normalization
    - `daily-knowledge-pack-builder`
    - canonical `knowledge_pack`
    - phase-2 preprocessing for X / raw GitHub / arXiv inputs
-3. Knowledge digestion
+4. Knowledge digestion
    - `daily-notebooklm-content-gen`
-4. Artifact lifecycle
+5. Artifact lifecycle
    - `daily-notebooklm-artifact-trigger`
    - `daily-notebooklm-artifact-harvest`
+
+## Acquisition Layer Rules
+
+- Active sources remain source collectors with stable outputs. The acquisition
+  orchestrator is a local layer, not a new content source.
+- Firecrawl and `firecrawl/web-agent` are optional adapter references only, not
+  required default dependencies.
+- Default public webpage and X handling uses no-extra-key paths first.
+- NotebookLM-specific behavior remains downstream of `knowledge_pack`.
 
 ## Notes
 
