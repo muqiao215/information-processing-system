@@ -97,7 +97,7 @@ last_verified: 2026-04-19
 ## 已吸收进本地 knowledge_pack 的部分
 
 2026-04-19 phase-2 preprocessing 已把这里的核心思路落到
-`/root/.ductor/workspace/tools/knowledge_pipeline/normalization/preprocess_sources.py`。
+`/root/.controlmesh/workspace/tools/knowledge_pipeline/normalization/preprocess_sources.py`。
 
 当前本地实现采用：
 
@@ -108,7 +108,7 @@ last_verified: 2026-04-19
 
 落地约定：
 
-- 本地缓存目录：`/root/.ductor/workspace/output_to_user/information_pipeline/preprocessed/YYYY-MM-DD/`
+- 本地缓存目录：`/root/.controlmesh/workspace/output_to_user/information_pipeline/preprocessed/YYYY-MM-DD/`
 - `knowledge_pack` item 记录 `preprocess.status`、`preprocess.method`、`preprocess.local_text_path`
 - 成功本地化的 item 会把 `{"kind": "markdown_file", "value": local_path}` 放到 `import_targets` 第一位
 - 原始 URL 保留在 `source_of_truth`、`url` 和后续 `import_targets`，作为追溯与兜底，不再作为 NotebookLM 首选入口

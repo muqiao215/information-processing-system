@@ -47,4 +47,4 @@ The target is an acquisition orchestration layer, not a simple fallback:
 
 | Error | Attempt | Resolution |
 | --- | --- | --- |
-| `tools/task_tools/CLAUDE/GEMINI/AGENTS.md` path missing | Tried to read placeholder path from Ductor prompt | Use actual `tools/task_tools/AGENTS.md` / `create_task.py` scripts |
+| `tools/task_tools/CLAUDE/GEMINI/AGENTS.md` path missing | Tried to read placeholder path from workspace prompt | Use actual `tools/task_tools/AGENTS.md` / `create_task.py` scripts |

@@ -31,11 +31,10 @@
 - Firecrawl `scrape` maps to local readers and fetch cascade.
 - Firecrawl `interact` maps to existing server-browser / Chrome CDP capabilities.
 - Firecrawl `extract/formatOutput` maps to local schemas and `knowledge_pack`.
-- Firecrawl subagents map to Ductor background workers or future local worker pools.
+- Firecrawl subagents map to background workers or future local worker pools.
 
 ## Recommended Placement
 
 - Add a new acquisition orchestration layer before `knowledge_pack`.
 - Treat Firecrawl/Web Agent as an optional adapter candidate under `Adapters/`, not `Sources/`.
 - Keep existing source collectors such as follow-builders, BuilderPulse, and arXiv intact.
-

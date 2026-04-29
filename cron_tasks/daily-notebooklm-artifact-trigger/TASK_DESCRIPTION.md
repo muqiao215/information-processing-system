@@ -17,17 +17,17 @@ request-oriented.
 
 This task depends on:
 - the report task having written
-  `/root/.ductor/workspace/output_to_user/notebooklm_report_run_latest.json`
+  `/root/.controlmesh/workspace/output_to_user/notebooklm_report_run_latest.json`
 - Chrome CDP being available at `127.0.0.1:9222`
 - a working NotebookLM login state for that browser
 
 Allowed write targets:
-- `/root/.ductor/workspace/output_to_user`
+- `/root/.controlmesh/workspace/output_to_user`
 - NotebookLM slide deck and video generation requests via the CLI
 
 Execution steps:
 1. Read this task's memory file.
-2. Read `/root/.ductor/workspace/output_to_user/notebooklm_report_run_latest.json`.
+2. Read `/root/.controlmesh/workspace/output_to_user/notebooklm_report_run_latest.json`.
    If missing, stop and report that the report task has not produced notebook metadata yet.
 3. Extract at minimum:
    - `date`
@@ -37,36 +37,36 @@ Execution steps:
    - `report_path`
 4. Check browser/CDP readiness:
    - `ss -ltn '( sport = :9222 )'`
-   - `cd /root/.ductor/workspace/notebooklm-cdp-cli && uv run notebooklm --host 127.0.0.1 --port 9222 browser status --json`
-   - `cd /root/.ductor/workspace/notebooklm-cdp-cli && uv run notebooklm --host 127.0.0.1 --port 9222 auth status --json`
+   - `notebooklm --host 127.0.0.1 --port 9222 browser status --json`
+   - `notebooklm --host 127.0.0.1 --port 9222 auth status --json`
 5. If CDP or auth is not ready, stop and report the blocker cleanly. Do not fake success.
 6. Check whether today's trigger metadata already exists:
-   - `/root/.ductor/workspace/output_to_user/notebooklm_artifact_trigger_YYYYMMDD.json`
+   - `/root/.controlmesh/workspace/output_to_user/notebooklm_artifact_trigger_YYYYMMDD.json`
    - If it exists and has both `slide_deck_artifact_id` and `video_artifact_id`
      for the same `notebook_id`, do not create duplicates. Report `already_triggered`.
 7. Trigger slide deck generation:
-   - `cd /root/.ductor/workspace/notebooklm-cdp-cli && uv run notebooklm --host 127.0.0.1 --port 9222 generate slide-deck -n <notebook_id> --json`
+   - `notebooklm --host 127.0.0.1 --port 9222 generate slide-deck -n <notebook_id> --json`
    - Success means the command returns normally with an artifact id or equivalent accepted artifact payload.
    - Do not wait for readiness.
    - Do not download.
 8. Trigger video generation:
-   - `cd /root/.ductor/workspace/notebooklm-cdp-cli && uv run notebooklm --host 127.0.0.1 --port 9222 generate video -n <notebook_id> --json`
+   - `notebooklm --host 127.0.0.1 --port 9222 generate video -n <notebook_id> --json`
    - Success means the command returns normally with an artifact id or equivalent accepted artifact payload.
    - Do not wait for readiness.
    - Do not download.
 9. Write trigger metadata:
    - dated:
-     `/root/.ductor/workspace/output_to_user/notebooklm_artifact_trigger_YYYYMMDD.json`
+     `/root/.controlmesh/workspace/output_to_user/notebooklm_artifact_trigger_YYYYMMDD.json`
    - latest:
-     `/root/.ductor/workspace/output_to_user/notebooklm_artifact_trigger_latest.json`
+     `/root/.controlmesh/workspace/output_to_user/notebooklm_artifact_trigger_latest.json`
 10. Report exactly which generation requests were accepted and which artifact ids were returned.
 11. Leave the returned artifact ids intact for the downstream harvest task:
    - it will read `notebooklm_artifact_trigger_latest.json`
    - it will wait for readiness and download slide/video into
-     `/root/.ductor/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/`
+     `/root/.controlmesh/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/`
 
 Important:
-- Use `/root/.ductor/workspace/notebooklm-cdp-cli`, never `/root/.conductor/...`.
+- Use the `notebooklm` CLI from `PATH`.
 - Use the unified server browser endpoint `127.0.0.1:9222`; do not probe the retired `19800` port.
 - Use `generate slide-deck`, not the old invalid `generate ppt`.
 - Use `generate video` for the video request.

@@ -17,9 +17,9 @@ last_verified: 2026-04-19
 | layer | `collector + selector + synthesizer` |
 | schedule | `10:10 Asia/Shanghai` |
 | upstream repo | `BuilderPulse/BuilderPulse` |
-| local repo | `/root/.ductor/workspace/vendor/BuilderPulse` |
-| task description | `/root/.ductor/workspace/cron_tasks/daily-builderpulse-opportunity-radar/TASK_DESCRIPTION.md` |
-| parser script | `/root/.ductor/workspace/cron_tasks/daily-builderpulse-opportunity-radar/scripts/build_builderpulse_radar.py` |
+| local repo | `/root/.controlmesh/workspace/vendor/BuilderPulse` |
+| task description | `/root/.controlmesh/workspace/cron_tasks/daily-builderpulse-opportunity-radar/TASK_DESCRIPTION.md` |
+| parser script | `/root/.controlmesh/workspace/cron_tasks/daily-builderpulse-opportunity-radar/scripts/build_builderpulse_radar.py` |
 
 ## Source Contract
 
@@ -42,8 +42,8 @@ last_verified: 2026-04-19
 
 Canonical outputs:
 
-- `/root/.ductor/workspace/output_to_user/builderpulse_opportunity_radar_latest.md`
-- `/root/.ductor/workspace/output_to_user/builderpulse_opportunity_radar_sources_latest.json`
+- `/root/.controlmesh/workspace/output_to_user/builderpulse_opportunity_radar_latest.md`
+- `/root/.controlmesh/workspace/output_to_user/builderpulse_opportunity_radar_sources_latest.json`
 
 报告必须包含：
 

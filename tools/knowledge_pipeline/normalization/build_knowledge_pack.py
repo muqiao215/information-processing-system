@@ -12,7 +12,8 @@ from typing import Any
 from preprocess_sources import apply_preprocessing
 
 
-WORKSPACE = Path("/root/.ductor/workspace")
+REPO_ROOT = Path(__file__).resolve().parents[3]
+WORKSPACE = REPO_ROOT.parent
 OUTPUT_ROOT = WORKSPACE / "output_to_user"
 PIPELINE_ROOT = OUTPUT_ROOT / "information_pipeline" / "bundles"
 PREPROCESS_CACHE_ROOT = OUTPUT_ROOT / "information_pipeline" / "preprocessed"

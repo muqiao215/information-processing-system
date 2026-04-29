@@ -16,7 +16,7 @@ last_verified: 2026-04-19
 | cron_id | `daily-news-summary-7am` |
 | layer | `collector + synthesizer` |
 | schedule | `07:20 Asia/Shanghai` |
-| task description | `/root/.ductor/workspace/cron_tasks/daily-news-summary-7am/TASK_DESCRIPTION.md` |
+| task description | `/root/.controlmesh/workspace/cron_tasks/daily-news-summary-7am/TASK_DESCRIPTION.md` |
 
 ## Source Contract
 
@@ -43,7 +43,7 @@ last_verified: 2026-04-19
 - 不允许只看标题或 RSS snippet 硬编正文。
 - 正文不可得时明确写 `正文不可得`。
 - 内容太薄时明确写 `细节不足`。
-- 不调用外部消息工具，由 Ductor cron 负责投递。
+- 不调用外部消息工具，由 workspace cron 负责投递。
 
 ## Registry
 

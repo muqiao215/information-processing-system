@@ -17,10 +17,10 @@ last_verified: 2026-04-19
 | role | source collector 与 digestion consumer 之间的统一 `knowledge_pack` 适配层 |
 | cron | `daily-knowledge-pack-builder` |
 | schedule | `10:15 Asia/Shanghai` |
-| planned output root | `/root/.ductor/workspace/output_to_user/information_pipeline/bundles/` |
-| implemented script | `/root/.ductor/workspace/tools/knowledge_pipeline/normalization/build_knowledge_pack.py` |
-| preprocessing helper | `/root/.ductor/workspace/tools/knowledge_pipeline/normalization/preprocess_sources.py` |
-| schema | `/root/.ductor/workspace/tools/knowledge_pipeline/schemas/knowledge_pack.schema.json` |
+| planned output root | `/root/.controlmesh/workspace/output_to_user/information_pipeline/bundles/` |
+| implemented script | `/root/.controlmesh/workspace/tools/knowledge_pipeline/normalization/build_knowledge_pack.py` |
+| preprocessing helper | `/root/.controlmesh/workspace/tools/knowledge_pipeline/normalization/preprocess_sources.py` |
+| schema | `/root/.controlmesh/workspace/tools/knowledge_pipeline/schemas/knowledge_pack.schema.json` |
 
 ## 为什么需要它
 
@@ -42,21 +42,21 @@ NotebookLM 下游不应该继续直接绑死某一个 manifest。
 
 ## 输入
 
-- `/root/.ductor/workspace/output_to_user/ai_builders_digest_sources_latest.json`
-- `/root/.ductor/workspace/output_to_user/builderpulse_opportunity_radar_sources_latest.json`
-- `/root/.ductor/workspace/output_to_user/arxiv_llm_memory_discovery_latest.json`
+- `/root/.controlmesh/workspace/output_to_user/ai_builders_digest_sources_latest.json`
+- `/root/.controlmesh/workspace/output_to_user/builderpulse_opportunity_radar_sources_latest.json`
+- `/root/.controlmesh/workspace/output_to_user/arxiv_llm_memory_discovery_latest.json`
 
 ## 输出
 
 Canonical outputs:
 
-- `/root/.ductor/workspace/output_to_user/knowledge_pack_latest.json`
-- `/root/.ductor/workspace/output_to_user/knowledge_pack_latest.md`
-- `/root/.ductor/workspace/output_to_user/knowledge_pack_YYYYMMDD.json`
-- `/root/.ductor/workspace/output_to_user/knowledge_pack_YYYYMMDD.md`
-- `/root/.ductor/workspace/output_to_user/information_pipeline/bundles/YYYY-MM-DD/knowledge_pack.json`
-- `/root/.ductor/workspace/output_to_user/information_pipeline/bundles/YYYY-MM-DD/knowledge_pack.md`
-- `/root/.ductor/workspace/output_to_user/information_pipeline/preprocessed/YYYY-MM-DD/*.md`
+- `/root/.controlmesh/workspace/output_to_user/knowledge_pack_latest.json`
+- `/root/.controlmesh/workspace/output_to_user/knowledge_pack_latest.md`
+- `/root/.controlmesh/workspace/output_to_user/knowledge_pack_YYYYMMDD.json`
+- `/root/.controlmesh/workspace/output_to_user/knowledge_pack_YYYYMMDD.md`
+- `/root/.controlmesh/workspace/output_to_user/information_pipeline/bundles/YYYY-MM-DD/knowledge_pack.json`
+- `/root/.controlmesh/workspace/output_to_user/information_pipeline/bundles/YYYY-MM-DD/knowledge_pack.md`
+- `/root/.controlmesh/workspace/output_to_user/information_pipeline/preprocessed/YYYY-MM-DD/*.md`
 
 ## 标准 item schema
 
@@ -78,11 +78,11 @@ Canonical outputs:
     "generated_at": "..."
   },
   "content_type": "url | markdown | pdf | x_post | repo_archive",
-  "local_text_path": "/root/.ductor/workspace/output_to_user/information_pipeline/preprocessed/YYYY-MM-DD/item.md",
+  "local_text_path": "/root/.controlmesh/workspace/output_to_user/information_pipeline/preprocessed/YYYY-MM-DD/item.md",
   "import_targets": [
     {
       "kind": "markdown_file",
-      "value": "/root/.ductor/workspace/output_to_user/information_pipeline/preprocessed/YYYY-MM-DD/item.md"
+      "value": "/root/.controlmesh/workspace/output_to_user/information_pipeline/preprocessed/YYYY-MM-DD/item.md"
     },
     {
       "kind": "url",

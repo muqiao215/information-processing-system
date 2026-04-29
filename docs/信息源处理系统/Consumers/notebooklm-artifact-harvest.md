@@ -17,14 +17,14 @@ last_verified: 2026-04-19
 | layer | `artifact harvester` |
 | suggested schedule | `10:50 Asia/Shanghai` |
 | upstream consumer | [[notebooklm-artifact-trigger]] |
-| task description | `/root/.ductor/workspace/cron_tasks/daily-notebooklm-artifact-harvest/TASK_DESCRIPTION.md` |
+| task description | `/root/.controlmesh/workspace/cron_tasks/daily-notebooklm-artifact-harvest/TASK_DESCRIPTION.md` |
 | browser endpoint | `127.0.0.1:9222` |
 
 ## Input Contract
 
 | 字段 | 值 |
 | --- | --- |
-| input_source | `/root/.ductor/workspace/output_to_user/notebooklm_artifact_trigger_latest.json` |
+| input_source | `/root/.controlmesh/workspace/output_to_user/notebooklm_artifact_trigger_latest.json` |
 | access_path | NotebookLM CLI + Chrome CDP |
 | success_gate | slide deck / video 成功下载，或明确写出 pending / blocker metadata |
 
@@ -32,10 +32,10 @@ last_verified: 2026-04-19
 
 Canonical outputs:
 
-- `/root/.ductor/workspace/output_to_user/notebooklm_artifact_harvest_YYYYMMDD.json`
-- `/root/.ductor/workspace/output_to_user/notebooklm_artifact_harvest_latest.json`
-- `/root/.ductor/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/YYYYMMDD-slide-deck-<artifact_id>.pdf`
-- `/root/.ductor/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/YYYYMMDD-video-<artifact_id>.mp4`
+- `/root/.controlmesh/workspace/output_to_user/notebooklm_artifact_harvest_YYYYMMDD.json`
+- `/root/.controlmesh/workspace/output_to_user/notebooklm_artifact_harvest_latest.json`
+- `/root/.controlmesh/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/YYYYMMDD-slide-deck-<artifact_id>.pdf`
+- `/root/.controlmesh/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/YYYYMMDD-video-<artifact_id>.mp4`
 
 Harvest metadata must include at least:
 
@@ -73,7 +73,7 @@ Recommended extra fields:
 ## Notes
 
 - harvest 只消费 trigger metadata，不重新触发 artifact 生成。
-- 浏览器体系继续复用 `notebooklm-cdp-cli` + server-browser CDP，不引入新的浏览器自动化栈。
+- 浏览器体系继续复用 `notebooklm` CLI + server-browser CDP，不引入新的浏览器自动化栈。
 - slide deck 建议固定下载为 `pdf`，video 下载为 `mp4`。
 
 ## Registry

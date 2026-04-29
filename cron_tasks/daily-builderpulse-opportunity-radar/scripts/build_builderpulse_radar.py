@@ -9,13 +9,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-DEFAULT_REPO_ROOT = Path("/root/.ductor/workspace/vendor/BuilderPulse")
-DEFAULT_MD_OUT = Path(
-    "/root/.ductor/workspace/output_to_user/builderpulse_opportunity_radar_latest.md"
-)
-DEFAULT_JSON_OUT = Path(
-    "/root/.ductor/workspace/output_to_user/builderpulse_opportunity_radar_sources_latest.json"
-)
+WORKSPACE_ROOT = Path(__file__).resolve().parents[4].parent
+DEFAULT_REPO_ROOT = WORKSPACE_ROOT / "vendor" / "BuilderPulse"
+DEFAULT_MD_OUT = WORKSPACE_ROOT / "output_to_user" / "builderpulse_opportunity_radar_latest.md"
+DEFAULT_JSON_OUT = WORKSPACE_ROOT / "output_to_user" / "builderpulse_opportunity_radar_sources_latest.json"
 RAW_BASE_URL = "https://raw.githubusercontent.com/BuilderPulse/BuilderPulse/main"
 SECTION_ORDER = ["发现机会", "技术选型", "竞争情报", "趋势判断"]
 DISPLAY_LIMIT_PER_SECTION = 2

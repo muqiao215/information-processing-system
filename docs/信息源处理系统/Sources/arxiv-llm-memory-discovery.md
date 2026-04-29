@@ -16,11 +16,11 @@ last_verified: 2026-04-19
 | cron_id | `daily-arxiv-llm-memory-discovery` |
 | layer | `collector + selector` |
 | schedule | `09:00 Asia/Shanghai` |
-| skill | `/root/.ductor/workspace/skills/arxiv-llm-memory-discovery` |
-| Hermes live copy | `/root/.ductor/workspace/vendor/hermes-agent/.hermes-home/skills/research/arxiv-llm-memory-discovery` |
+| skill | `/root/.controlmesh/workspace/skills/arxiv-llm-memory-discovery` |
+| Hermes live copy | `/root/.controlmesh/workspace/vendor/hermes-agent/.hermes-home/skills/research/arxiv-llm-memory-discovery` |
 | private sync | `/root/private-sync-bundle/skills-selected/arxiv-llm-memory-discovery` |
-| task description | `/root/.ductor/workspace/cron_tasks/daily-arxiv-llm-memory-discovery/TASK_DESCRIPTION.md` |
-| discovery script | `/root/.ductor/workspace/skills/arxiv-llm-memory-discovery/scripts/discover_llm_memory_paper.py` |
+| task description | `/root/.controlmesh/workspace/cron_tasks/daily-arxiv-llm-memory-discovery/TASK_DESCRIPTION.md` |
+| discovery script | `/root/.controlmesh/workspace/skills/arxiv-llm-memory-discovery/scripts/discover_llm_memory_paper.py` |
 
 ## Source Contract
 
@@ -47,9 +47,9 @@ last_verified: 2026-04-19
 
 Canonical outputs:
 
-- `/root/.ductor/workspace/output_to_user/arxiv_llm_memory_discovery_latest.md`
-- `/root/.ductor/workspace/output_to_user/arxiv_llm_memory_discovery_latest.json`
-- `/root/.ductor/workspace/output_to_user/arxiv_llm_memory_discovery_state.json`
+- `/root/.controlmesh/workspace/output_to_user/arxiv_llm_memory_discovery_latest.md`
+- `/root/.controlmesh/workspace/output_to_user/arxiv_llm_memory_discovery_latest.json`
+- `/root/.controlmesh/workspace/output_to_user/arxiv_llm_memory_discovery_state.json`
 
 ## Failure Behavior
 

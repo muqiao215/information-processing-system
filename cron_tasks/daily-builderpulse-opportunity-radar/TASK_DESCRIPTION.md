@@ -11,13 +11,13 @@ This task should produce one standalone Chinese opportunity-radar brief from
 task.
 
 Allowed write targets:
-- `/root/.ductor/workspace/output_to_user`
-- `/root/.ductor/workspace/vendor/BuilderPulse` via `git pull --ff-only` only
+- `/root/.controlmesh/workspace/output_to_user`
+- `/root/.controlmesh/workspace/vendor/BuilderPulse` via `git pull --ff-only` only
 
 Execution steps:
 1. Read this task's memory file.
 2. Refresh the local BuilderPulse source:
-   - `git -C /root/.ductor/workspace/vendor/BuilderPulse pull --ff-only`
+   - `git -C /root/.controlmesh/workspace/vendor/BuilderPulse pull --ff-only`
 3. If the pull fails, report the failure clearly, but continue using the latest
    local snapshot instead of failing the whole run.
 4. Run:
@@ -29,8 +29,8 @@ Execution steps:
    - write a human-readable markdown report
    - write a machine-readable JSON manifest for downstream reuse
 6. Save two files:
-   - `/root/.ductor/workspace/output_to_user/builderpulse_opportunity_radar_latest.md`
-   - `/root/.ductor/workspace/output_to_user/builderpulse_opportunity_radar_sources_latest.json`
+   - `/root/.controlmesh/workspace/output_to_user/builderpulse_opportunity_radar_latest.md`
+   - `/root/.controlmesh/workspace/output_to_user/builderpulse_opportunity_radar_sources_latest.json`
 7. Verify both files were written and the JSON manifest parses cleanly.
 
 Important:

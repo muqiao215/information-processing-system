@@ -11,7 +11,7 @@ This task does not need browser automation. It should finish the text digests an
 write the latest source manifest for the next task.
 
 Allowed write targets:
-- `/root/.ductor/workspace/output_to_user`
+- `/root/.controlmesh/workspace/output_to_user`
 
 Execution steps:
 1. Read this task's memory file.
@@ -28,8 +28,8 @@ Execution steps:
 6. For each selected item, keep the original source URL in the machine-readable
    manifest, but do not dump raw links excessively in the human report.
 7. Save two files:
-   - `/root/.ductor/workspace/output_to_user/ai_builders_digest_latest.md`
-   - `/root/.ductor/workspace/output_to_user/ai_builders_digest_sources_latest.json`
+   - `/root/.controlmesh/workspace/output_to_user/ai_builders_digest_latest.md`
+   - `/root/.controlmesh/workspace/output_to_user/ai_builders_digest_sources_latest.json`
 8. The JSON manifest must contain the selected items and URLs that the NotebookLM
    task should import later.
 

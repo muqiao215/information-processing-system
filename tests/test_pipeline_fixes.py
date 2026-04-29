@@ -7,7 +7,7 @@ import unittest
 from pathlib import Path
 
 
-REPO_ROOT = Path("/root/.ductor/workspace/information-processing-system")
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def load_module(name: str, relative_path: str):
@@ -96,16 +96,16 @@ class PreprocessSourceTests(unittest.TestCase):
 
 
 class NotebookLmHarvestTests(unittest.TestCase):
-    def test_resolve_notebooklm_cli_dir_falls_back_to_parent_workspace(self) -> None:
+    def test_resolve_workspace_root_falls_back_to_parent_workspace(self) -> None:
         module = load_module(
             "harvest_notebooklm_artifacts",
             "cron_tasks/daily-notebooklm-artifact-harvest/scripts/harvest_notebooklm_artifacts.py",
         )
 
         repo_root = REPO_ROOT
-        cli_dir = module.resolve_notebooklm_cli_dir(repo_root)
+        workspace_root = module.resolve_workspace_root(repo_root)
 
-        self.assertEqual(cli_dir, Path("/root/.ductor/workspace/notebooklm-cdp-cli"))
+        self.assertEqual(workspace_root, REPO_ROOT.parent)
 
     def test_run_command_returns_structured_result_for_missing_binary(self) -> None:
         module = load_module(

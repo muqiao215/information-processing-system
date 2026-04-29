@@ -16,8 +16,8 @@ last_verified: 2026-04-19
 | cron_id | `daily-github-trending-ai-watch` |
 | layer | `collector + selector` |
 | schedule | `09:30 Asia/Shanghai` |
-| task description | `/root/.ductor/workspace/cron_tasks/daily-github-trending-ai-watch/TASK_DESCRIPTION.md` |
-| collector script | `/root/.ductor/workspace/cron_tasks/daily-github-trending-ai-watch/scripts/fetch_github_trending.py` |
+| task description | `/root/.controlmesh/workspace/cron_tasks/daily-github-trending-ai-watch/TASK_DESCRIPTION.md` |
+| collector script | `/root/.controlmesh/workspace/cron_tasks/daily-github-trending-ai-watch/scripts/fetch_github_trending.py` |
 
 ## Source Contract
 
@@ -49,7 +49,7 @@ Top 8 每项包含：
 - 直接抓取失败时停止并说明。
 - 不从 stale memory 生成榜单。
 - 不伪造 GitHub Trending 结果。
-- 不调用外部消息工具，由 Ductor cron 负责投递。
+- 不调用外部消息工具，由 workspace cron 负责投递。
 
 ## Registry
 

@@ -10,12 +10,12 @@ This task should run the local `arxiv-llm-memory-discovery` skill and produce on
 daily Telegram-friendly push message.
 
 Allowed write targets:
-- `/root/.ductor/workspace/output_to_user`
+- `/root/.controlmesh/workspace/output_to_user`
 
 Execution steps:
 1. Read this task's memory file.
 2. Run the skill script:
-   - `python3 /root/.ductor/workspace/skills/arxiv-llm-memory-discovery/scripts/discover_llm_memory_paper.py`
+   - `python3 /root/.controlmesh/workspace/skills/arxiv-llm-memory-discovery/scripts/discover_llm_memory_paper.py`
 3. The script is responsible for:
    - querying arXiv with `abs:`-scoped queries only
    - filtering out Mamba / state-space / time-series / memory-efficient-training noise
@@ -23,9 +23,9 @@ Execution steps:
    - selecting at most one paper
    - degrading gracefully on arXiv rate limits by printing a skip message instead of failing
 4. Verify the output files exist:
-   - `/root/.ductor/workspace/output_to_user/arxiv_llm_memory_discovery_latest.md`
-   - `/root/.ductor/workspace/output_to_user/arxiv_llm_memory_discovery_latest.json`
-   - `/root/.ductor/workspace/output_to_user/arxiv_llm_memory_discovery_state.json`
+   - `/root/.controlmesh/workspace/output_to_user/arxiv_llm_memory_discovery_latest.md`
+   - `/root/.controlmesh/workspace/output_to_user/arxiv_llm_memory_discovery_latest.json`
+   - `/root/.controlmesh/workspace/output_to_user/arxiv_llm_memory_discovery_state.json`
 5. Parse the JSON file to confirm it is valid JSON.
 
 Important:

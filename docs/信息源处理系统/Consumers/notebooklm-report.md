@@ -16,15 +16,15 @@ last_verified: 2026-04-19
 | cron_id | `daily-notebooklm-content-gen` |
 | layer | `artifact generator` |
 | schedule | `10:20 Asia/Shanghai` |
-| task description | `/root/.ductor/workspace/cron_tasks/daily-notebooklm-content-gen/TASK_DESCRIPTION.md` |
+| task description | `/root/.controlmesh/workspace/cron_tasks/daily-notebooklm-content-gen/TASK_DESCRIPTION.md` |
 | browser endpoint | `127.0.0.1:9222` |
 
 ## Input Contract
 
 | 字段 | 值 |
 | --- | --- |
-| input_source | `/root/.ductor/workspace/output_to_user/knowledge_pack_latest.json` |
-| legacy fallback | `/root/.ductor/workspace/output_to_user/ai_builders_digest_sources_latest.json` |
+| input_source | `/root/.controlmesh/workspace/output_to_user/knowledge_pack_latest.json` |
+| legacy fallback | `/root/.controlmesh/workspace/output_to_user/ai_builders_digest_sources_latest.json` |
 | upstream source | [[../Adapters/notebooklm-source-pack]] |
 | access_path | NotebookLM CLI + Chrome CDP |
 | success_gate | report 成功生成并下载到 `output_to_user` |
@@ -33,9 +33,9 @@ last_verified: 2026-04-19
 
 Canonical outputs:
 
-- `/root/.ductor/workspace/output_to_user/notebooklm_report_YYYYMMDD.md`
-- `/root/.ductor/workspace/output_to_user/notebooklm_report_run_YYYYMMDD.json`
-- `/root/.ductor/workspace/output_to_user/notebooklm_report_run_latest.json`
+- `/root/.controlmesh/workspace/output_to_user/notebooklm_report_YYYYMMDD.md`
+- `/root/.controlmesh/workspace/output_to_user/notebooklm_report_run_YYYYMMDD.json`
+- `/root/.controlmesh/workspace/output_to_user/notebooklm_report_run_latest.json`
 
 Run metadata must include:
 

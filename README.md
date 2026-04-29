@@ -1,6 +1,6 @@
 # Information Processing System
 
-Local information processing system extracted from the Ductor workspace.
+Local information processing system extracted from the current workspace.
 
 This repository is the standalone code home for the pipeline that turns
 heterogeneous information sources into a canonical `knowledge_pack`, then
@@ -53,7 +53,7 @@ The upstream acquisition path is now documented as an explicit local layer:
 
 - This repo intentionally excludes runtime outputs from `output_to_user/`.
 - Browser/runtime-specific login state is not stored here.
-- Runtime execution still expects sibling Ductor workspace resources such as
-  `output_to_user/`, `vendor/BuilderPulse/`, and `notebooklm-cdp-cli/`.
+- Runtime execution still expects sibling workspace resources such as
+  `output_to_user/`, `vendor/BuilderPulse/`, and a `notebooklm` CLI available on `PATH`.
 - The Obsidian/ops-facing reference set is also synced from this repo shape into
   `ops-vault`.

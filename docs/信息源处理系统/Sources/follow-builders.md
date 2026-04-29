@@ -16,10 +16,10 @@ last_verified: 2026-04-19
 | cron_id | `ai-builders-digest-5briefs` |
 | layer | `collector + selector + synthesizer` |
 | schedule | `09:40 Asia/Shanghai` |
-| skill | `/root/.ductor/workspace/skills/follow-builders` |
+| skill | `/root/.controlmesh/workspace/skills/follow-builders` |
 | private sync | `/root/private-sync-bundle/skills-selected/follow-builders` |
-| task description | `/root/.ductor/workspace/cron_tasks/ai-builders-digest-5briefs/TASK_DESCRIPTION.md` |
-| collector script | `/root/.ductor/workspace/cron_tasks/ai-builders-digest-5briefs/scripts/fetch_follow_builders.py` |
+| task description | `/root/.controlmesh/workspace/cron_tasks/ai-builders-digest-5briefs/TASK_DESCRIPTION.md` |
+| collector script | `/root/.controlmesh/workspace/cron_tasks/ai-builders-digest-5briefs/scripts/fetch_follow_builders.py` |
 
 ## Source Contract
 
@@ -43,8 +43,8 @@ last_verified: 2026-04-19
 
 Canonical outputs:
 
-- `/root/.ductor/workspace/output_to_user/ai_builders_digest_latest.md`
-- `/root/.ductor/workspace/output_to_user/ai_builders_digest_sources_latest.json`
+- `/root/.controlmesh/workspace/output_to_user/ai_builders_digest_latest.md`
+- `/root/.controlmesh/workspace/output_to_user/ai_builders_digest_sources_latest.json`
 
 ## Downstream Consumers
 
@@ -55,7 +55,7 @@ Canonical outputs:
 
 - feed 加载失败时在报告中明确说明。
 - 不直接创建 NotebookLM notebook。
-- 不调用外部消息工具，由 Ductor cron 负责投递。
+- 不调用外部消息工具，由 workspace cron 负责投递。
 
 ## Registry
 

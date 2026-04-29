@@ -24,7 +24,7 @@ last_verified: 2026-04-19
 
 | 字段 | 值 |
 | --- | --- |
-| input_source | `/root/.ductor/workspace/output_to_user/notebooklm_report_run_latest.json` |
+| input_source | `/root/.controlmesh/workspace/output_to_user/notebooklm_report_run_latest.json` |
 | access_path | NotebookLM CLI + Chrome CDP |
 | success_gate | generation request accepted and artifact id returned |
 
@@ -39,14 +39,14 @@ last_verified: 2026-04-19
 
 Canonical outputs:
 
-- `/root/.ductor/workspace/output_to_user/notebooklm_artifact_trigger_YYYYMMDD.json`
-- `/root/.ductor/workspace/output_to_user/notebooklm_artifact_trigger_latest.json`
+- `/root/.controlmesh/workspace/output_to_user/notebooklm_artifact_trigger_YYYYMMDD.json`
+- `/root/.controlmesh/workspace/output_to_user/notebooklm_artifact_trigger_latest.json`
 
 Downstream handoff:
 
 - `daily-notebooklm-artifact-harvest` 读取 latest trigger metadata。
 - harvest 负责等待 readiness 与下载，不回流到 trigger。
-- artifact 文件落点是 `/root/.ductor/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/`。
+- artifact 文件落点是 `/root/.controlmesh/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/`。
 
 ## Failure Behavior
 

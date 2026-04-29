@@ -16,8 +16,8 @@ last_verified: 2026-04-19
 | visibility | private |
 | type | independent repo / pipeline engine |
 | role | APD 风格的论文到 NotebookLM / artifact / publishing 流水线参考实现 |
-| local status | 当前未克隆到 `/root/.ductor/workspace/vendor/auto-paper-digest` |
-| skill wrapper | `/root/.ductor/workspace/skills/auto-paper-digest` |
+| local status | 当前未克隆到 `/root/.controlmesh/workspace/vendor/auto-paper-digest` |
+| skill wrapper | `/root/.controlmesh/workspace/skills/auto-paper-digest` |
 
 ## 定位
 

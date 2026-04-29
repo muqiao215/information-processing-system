@@ -8,7 +8,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 
-DEFAULT_REPO_ROOT = Path("/root/.ductor/workspace/vendor/BuilderPulse")
+WORKSPACE_ROOT = Path(__file__).resolve().parents[4].parent
+DEFAULT_REPO_ROOT = WORKSPACE_ROOT / "vendor" / "BuilderPulse"
 RAW_BASE_URL = "https://raw.githubusercontent.com/BuilderPulse/BuilderPulse/main"
 
 

@@ -14,7 +14,7 @@ last_verified: 2026-04-20
 | --- | --- |
 | type | `local orchestration layer` |
 | role | `source collector` 与 `knowledge_pack` 之间的采集编排层 |
-| implemented code | `/root/.ductor/workspace/information-processing-system/tools/knowledge_pipeline/acquisition/` |
+| implemented code | `/root/.controlmesh/workspace/information-processing-system/tools/knowledge_pipeline/acquisition/` |
 | cli entry | `python3 -m tools.knowledge_pipeline.acquisition --url <URL>` |
 | status | `active / skeleton landed` |
 
@@ -70,7 +70,7 @@ last_verified: 2026-04-20
 干跑并打印 ledger：
 
 ```bash
-cd /root/.ductor/workspace/information-processing-system
+cd /root/.controlmesh/workspace/information-processing-system
 python3 -m tools.knowledge_pipeline.acquisition \
   --url https://example.com/article \
   --title "Example Article"
@@ -79,7 +79,7 @@ python3 -m tools.knowledge_pipeline.acquisition \
 把 ledger 写到文件：
 
 ```bash
-cd /root/.ductor/workspace/information-processing-system
+cd /root/.controlmesh/workspace/information-processing-system
 python3 -m tools.knowledge_pipeline.acquisition \
   --url https://example.com/article \
   --output /tmp/acquisition-ledger.json
@@ -109,4 +109,3 @@ python3 -m tools.knowledge_pipeline.acquisition \
 - [[../信息源契约模板]]
 - [[notebooklm-source-pack]]
 - [[firecrawl-web-agent-fetch]]
-

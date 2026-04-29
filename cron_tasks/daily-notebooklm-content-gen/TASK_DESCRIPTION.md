@@ -3,7 +3,7 @@
 ## Goal
 
 Generate the daily NotebookLM report from the latest canonical `knowledge_pack`
-using the Ductor-local `notebooklm-cdp-cli`.
+using the `notebooklm` CLI with the shared Chrome CDP endpoint.
 
 This task is report-only. A report successfully generated and downloaded to
 `output_to_user` is the success gate. Do not generate video or slide deck here;
@@ -13,25 +13,25 @@ those are handled by the separate `daily-notebooklm-artifact-trigger` cron.
 
 This task depends on:
 - `daily-knowledge-pack-builder` or equivalent pack builder having produced
-  `/root/.ductor/workspace/output_to_user/knowledge_pack_latest.json`
+  `/root/.controlmesh/workspace/output_to_user/knowledge_pack_latest.json`
 - Chrome CDP being available at `127.0.0.1:9222`
 - a working NotebookLM login state for that browser
 
 Allowed write targets:
-- `/root/.ductor/workspace/output_to_user`
+- `/root/.controlmesh/workspace/output_to_user`
 - NotebookLM notebooks and report artifact via the CLI
 
 Execution steps:
 1. Read this task's memory file.
 2. Check browser/CDP readiness:
    - `ss -ltn '( sport = :9222 )'`
-   - `cd /root/.ductor/workspace/notebooklm-cdp-cli && uv run notebooklm --host 127.0.0.1 --port 9222 browser status --json`
-   - `cd /root/.ductor/workspace/notebooklm-cdp-cli && uv run notebooklm --host 127.0.0.1 --port 9222 auth status --json`
+   - `notebooklm --host 127.0.0.1 --port 9222 browser status --json`
+   - `notebooklm --host 127.0.0.1 --port 9222 auth status --json`
 3. If CDP or auth is not ready, stop and report the blocker cleanly. Do not fake success.
-4. Prefer reading `/root/.ductor/workspace/output_to_user/knowledge_pack_latest.json`.
+4. Prefer reading `/root/.controlmesh/workspace/output_to_user/knowledge_pack_latest.json`.
    - This is the canonical multi-source pack for NotebookLM digestion.
    - If it is missing, fall back once to
-     `/root/.ductor/workspace/output_to_user/ai_builders_digest_sources_latest.json`
+     `/root/.controlmesh/workspace/output_to_user/ai_builders_digest_sources_latest.json`
      in legacy-compat mode and clearly note that the run did not use the canonical pack.
    - If neither exists, report the blocker and stop.
 5. Create one notebook for today's selected knowledge set.
@@ -44,23 +44,23 @@ Execution steps:
    - Use each item's `preprocess.status` and `local_text_path` as the first
      signal of whether the source was already localized by the pack builder.
    - Use the pack's fallback markdown when available:
-     `/root/.ductor/workspace/output_to_user/knowledge_pack_latest.md`
+     `/root/.controlmesh/workspace/output_to_user/knowledge_pack_latest.md`
      or the dated fallback path recorded in `fallback_markdown_path`.
    - Import that fallback markdown as a NotebookLM source so the report can still be generated.
    - In legacy mode, keep the existing digest-manifest fallback behavior.
 7. Generate and download the primary report:
    - `generate report --format briefing_doc`
    - wait for the report until ready using a reasonable bounded timeout
-   - download it to `/root/.ductor/workspace/output_to_user/notebooklm_report_YYYYMMDD.md`
+   - download it to `/root/.controlmesh/workspace/output_to_user/notebooklm_report_YYYYMMDD.md`
 8. Write a run metadata file for the follow-up artifact trigger task:
    - dated:
-     `/root/.ductor/workspace/output_to_user/notebooklm_report_run_YYYYMMDD.json`
+     `/root/.controlmesh/workspace/output_to_user/notebooklm_report_run_YYYYMMDD.json`
    - latest:
-     `/root/.ductor/workspace/output_to_user/notebooklm_report_run_latest.json`
+     `/root/.controlmesh/workspace/output_to_user/notebooklm_report_run_latest.json`
 9. Report exactly what was generated and what paths were written.
 
 Important:
-- Use `/root/.ductor/workspace/notebooklm-cdp-cli`, never `/root/.conductor/...`.
+- Use the `notebooklm` CLI from `PATH`.
 - Use the unified server browser endpoint `127.0.0.1:9222`; do not probe the retired `19800` port.
 - Use `generate report`, not the old invalid `generate summary`.
 - Do not generate `slide-deck` or `video` in this task.

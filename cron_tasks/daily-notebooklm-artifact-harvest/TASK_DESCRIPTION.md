@@ -15,16 +15,16 @@ slide/video generation requests.
 This task depends on:
 
 - the artifact trigger task having written
-  `/root/.ductor/workspace/output_to_user/notebooklm_artifact_trigger_latest.json`
+  `/root/.controlmesh/workspace/output_to_user/notebooklm_artifact_trigger_latest.json`
 - Chrome CDP being available at `127.0.0.1:9222`
 - a working NotebookLM login state for that browser
 
 Allowed write targets:
 
-- `/root/.ductor/workspace/cron_tasks/daily-notebooklm-artifact-harvest/`
-- `/root/.ductor/workspace/output_to_user/notebooklm_artifact_harvest_YYYYMMDD.json`
-- `/root/.ductor/workspace/output_to_user/notebooklm_artifact_harvest_latest.json`
-- `/root/.ductor/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/`
+- `/root/.controlmesh/workspace/cron_tasks/daily-notebooklm-artifact-harvest/`
+- `/root/.controlmesh/workspace/output_to_user/notebooklm_artifact_harvest_YYYYMMDD.json`
+- `/root/.controlmesh/workspace/output_to_user/notebooklm_artifact_harvest_latest.json`
+- `/root/.controlmesh/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/`
 
 Execution steps:
 
@@ -33,14 +33,14 @@ Execution steps:
 3. Run the harvest helper:
 
    ```bash
-   cd /root/.ductor/workspace
+   cd /root/.controlmesh/workspace
    python3 cron_tasks/daily-notebooklm-artifact-harvest/scripts/harvest_notebooklm_artifacts.py
    ```
 
 4. The helper must read:
 
    ```text
-   /root/.ductor/workspace/output_to_user/notebooklm_artifact_trigger_latest.json
+   /root/.controlmesh/workspace/output_to_user/notebooklm_artifact_trigger_latest.json
    ```
 
 5. Extract at minimum:
@@ -56,37 +56,35 @@ Execution steps:
 6. Check browser/CDP readiness before waiting or downloading:
 
    - `ss -ltn '( sport = :9222 )'`
-   - `cd /root/.ductor/workspace/notebooklm-cdp-cli && uv run notebooklm --host 127.0.0.1 --port 9222 browser status --json`
-   - `cd /root/.ductor/workspace/notebooklm-cdp-cli && uv run notebooklm --host 127.0.0.1 --port 9222 auth status --json`
+   - `notebooklm --host 127.0.0.1 --port 9222 browser status --json`
+   - `notebooklm --host 127.0.0.1 --port 9222 auth status --json`
 
 7. If CDP or auth is not ready, stop after writing harvest metadata with
    `status: blocked`. Do not fake success.
 8. Wait for the slide deck artifact and download it to:
 
    ```text
-   /root/.ductor/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/YYYYMMDD-slide-deck-<artifact_id>.pdf
+   /root/.controlmesh/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/YYYYMMDD-slide-deck-<artifact_id>.pdf
    ```
 
    Use:
 
    ```bash
-   cd /root/.ductor/workspace/notebooklm-cdp-cli
-   uv run notebooklm --host 127.0.0.1 --port 9222 artifact wait <slide_deck_artifact_id> -n <notebook_id> --json
-   uv run notebooklm --host 127.0.0.1 --port 9222 download slide-deck <output.pdf> -n <notebook_id> --artifact-id <slide_deck_artifact_id> --format pdf --json
+   notebooklm --host 127.0.0.1 --port 9222 artifact wait <slide_deck_artifact_id> -n <notebook_id> --json
+   notebooklm --host 127.0.0.1 --port 9222 download slide-deck <output.pdf> -n <notebook_id> --artifact-id <slide_deck_artifact_id> --format pdf --json
    ```
 
 9. Wait for the video artifact and download it to:
 
    ```text
-   /root/.ductor/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/YYYYMMDD-video-<artifact_id>.mp4
+   /root/.controlmesh/workspace/output_to_user/information_pipeline/artifacts/YYYY-MM-DD/YYYYMMDD-video-<artifact_id>.mp4
    ```
 
    Use:
 
    ```bash
-   cd /root/.ductor/workspace/notebooklm-cdp-cli
-   uv run notebooklm --host 127.0.0.1 --port 9222 artifact wait <video_artifact_id> -n <notebook_id> --json
-   uv run notebooklm --host 127.0.0.1 --port 9222 download video <output.mp4> -n <notebook_id> --artifact-id <video_artifact_id> --json
+   notebooklm --host 127.0.0.1 --port 9222 artifact wait <video_artifact_id> -n <notebook_id> --json
+   notebooklm --host 127.0.0.1 --port 9222 download video <output.mp4> -n <notebook_id> --artifact-id <video_artifact_id> --json
    ```
 
 10. The helper is allowed to retry direct download after bounded waits because
@@ -103,16 +101,16 @@ Execution steps:
 12. Write harvest metadata:
 
     - dated:
-      `/root/.ductor/workspace/output_to_user/notebooklm_artifact_harvest_YYYYMMDD.json`
+      `/root/.controlmesh/workspace/output_to_user/notebooklm_artifact_harvest_YYYYMMDD.json`
     - latest:
-      `/root/.ductor/workspace/output_to_user/notebooklm_artifact_harvest_latest.json`
+      `/root/.controlmesh/workspace/output_to_user/notebooklm_artifact_harvest_latest.json`
 
 13. Update `daily-notebooklm-artifact-harvest_MEMORY.md` with the current
     date/time and what happened.
 
 Important:
 
-- Use `/root/.ductor/workspace/notebooklm-cdp-cli`, never `/root/.conductor/...`.
+- Use the `notebooklm` CLI from `PATH`.
 - Use the unified server browser endpoint `127.0.0.1:9222`; do not probe the retired `19800` port.
 - Use existing NotebookLM CLI commands only. Do not introduce another browser automation stack.
 - Use `download slide-deck`, not `download ppt`.

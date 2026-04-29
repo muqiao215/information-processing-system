@@ -19,18 +19,20 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 
 def resolve_workspace_root(start: Path | None = None) -> Path:
     start = (start or REPO_ROOT).resolve()
-    for candidate in [start, *start.parents]:
-        if (candidate / "notebooklm-cdp-cli").exists():
-            return candidate
+    if start == REPO_ROOT:
+        return start.parent
+    if REPO_ROOT in start.parents:
+        return REPO_ROOT.parent
     return start
 
 
-def resolve_notebooklm_cli_dir(start: Path | None = None) -> Path:
-    return resolve_workspace_root(start) / "notebooklm-cdp-cli"
+def resolve_notebooklm_command() -> list[str]:
+    notebooklm_bin = shutil.which("notebooklm")
+    return [notebooklm_bin or "notebooklm"]
 
 
 WORKSPACE = resolve_workspace_root()
-NOTEBOOKLM_CLI_DIR = resolve_notebooklm_cli_dir(WORKSPACE)
+NOTEBOOKLM_COMMAND = resolve_notebooklm_command()
 OUTPUT_DIR = WORKSPACE / "output_to_user"
 DEFAULT_TRIGGER_METADATA = OUTPUT_DIR / "notebooklm_artifact_trigger_latest.json"
 DEFAULT_ARTIFACT_ROOT = OUTPUT_DIR / "information_pipeline" / "artifacts"
@@ -133,8 +135,7 @@ def run_command(args: list[str], cwd: Path | None = None, timeout: float | None 
 
 def run_notebooklm(args: list[str], host: str, port: int, timeout: float | None = None) -> CommandResult:
     return run_command(
-        ["uv", "run", "notebooklm", "--host", host, "--port", str(port), *args],
-        cwd=NOTEBOOKLM_CLI_DIR,
+        [*NOTEBOOKLM_COMMAND, "--host", host, "--port", str(port), *args],
         timeout=timeout,
     )
 
@@ -160,7 +161,7 @@ def initial_metadata(trigger: dict[str, Any], trigger_path: Path, artifact_root:
         "harvested_at": now_iso(),
         "notes": [
             f"Read trigger metadata from {trigger_path}.",
-            "Harvest uses notebooklm-cdp-cli with Chrome CDP 127.0.0.1:9222; no alternate browser stack is introduced.",
+            "Harvest uses the NotebookLM CLI on PATH with Chrome CDP 127.0.0.1:9222.",
         ],
         "status": "not_started",
         "artifact_dir": str(artifact_dir),

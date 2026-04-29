@@ -8,8 +8,9 @@ from pathlib import Path
 
 
 BUNDLE_PATH = Path("/tmp/follow_builders_bundle.json")
-MARKDOWN_PATH = Path("/root/.ductor/workspace/output_to_user/ai_builders_digest_latest.md")
-MANIFEST_PATH = Path("/root/.ductor/workspace/output_to_user/ai_builders_digest_sources_latest.json")
+WORKSPACE_ROOT = Path(__file__).resolve().parents[4].parent
+MARKDOWN_PATH = WORKSPACE_ROOT / "output_to_user" / "ai_builders_digest_latest.md"
+MANIFEST_PATH = WORKSPACE_ROOT / "output_to_user" / "ai_builders_digest_sources_latest.json"
 
 
 SECTION_TITLES = {

@@ -14,16 +14,16 @@ It reads existing acquisition manifests, normalizes them into a canonical
 into local markdown/text before writing dated plus latest outputs.
 
 Allowed write targets:
-- `/root/.ductor/workspace/output_to_user`
+- `/root/.controlmesh/workspace/output_to_user`
 
 Execution steps:
 1. Read this task's memory file.
 2. Confirm the three upstream manifest paths and note which exist:
-   - `/root/.ductor/workspace/output_to_user/ai_builders_digest_sources_latest.json`
-   - `/root/.ductor/workspace/output_to_user/builderpulse_opportunity_radar_sources_latest.json`
-   - `/root/.ductor/workspace/output_to_user/arxiv_llm_memory_discovery_latest.json`
+   - `/root/.controlmesh/workspace/output_to_user/ai_builders_digest_sources_latest.json`
+   - `/root/.controlmesh/workspace/output_to_user/builderpulse_opportunity_radar_sources_latest.json`
+   - `/root/.controlmesh/workspace/output_to_user/arxiv_llm_memory_discovery_latest.json`
 3. Run the canonical builder:
-   - `cd /root/.ductor/workspace && python3 tools/knowledge_pipeline/normalization/build_knowledge_pack.py`
+   - `cd /root/.controlmesh/workspace && python3 tools/knowledge_pipeline/normalization/build_knowledge_pack.py`
 4. The builder must:
    - normalize `follow-builders` selected sources
    - normalize `BuilderPulse` opportunity radar selected sections
@@ -35,14 +35,14 @@ Execution steps:
    - write fallback markdown containing enough text for NotebookLM when URL import fails
    - continue if one upstream manifest is missing, but fail if all upstream manifests are missing or empty
 5. Verify these files exist:
-   - `/root/.ductor/workspace/output_to_user/knowledge_pack_latest.json`
-   - `/root/.ductor/workspace/output_to_user/knowledge_pack_latest.md`
-   - `/root/.ductor/workspace/output_to_user/knowledge_pack_YYYYMMDD.json`
-   - `/root/.ductor/workspace/output_to_user/knowledge_pack_YYYYMMDD.md`
-   - `/root/.ductor/workspace/output_to_user/information_pipeline/bundles/YYYY-MM-DD/knowledge_pack.json`
-   - `/root/.ductor/workspace/output_to_user/information_pipeline/bundles/YYYY-MM-DD/knowledge_pack.md`
-   - `/root/.ductor/workspace/output_to_user/information_pipeline/preprocessed/YYYY-MM-DD/*.md`
-6. Parse `/root/.ductor/workspace/output_to_user/knowledge_pack_latest.json` and verify:
+   - `/root/.controlmesh/workspace/output_to_user/knowledge_pack_latest.json`
+   - `/root/.controlmesh/workspace/output_to_user/knowledge_pack_latest.md`
+   - `/root/.controlmesh/workspace/output_to_user/knowledge_pack_YYYYMMDD.json`
+   - `/root/.controlmesh/workspace/output_to_user/knowledge_pack_YYYYMMDD.md`
+   - `/root/.controlmesh/workspace/output_to_user/information_pipeline/bundles/YYYY-MM-DD/knowledge_pack.json`
+   - `/root/.controlmesh/workspace/output_to_user/information_pipeline/bundles/YYYY-MM-DD/knowledge_pack.md`
+   - `/root/.controlmesh/workspace/output_to_user/information_pipeline/preprocessed/YYYY-MM-DD/*.md`
+6. Parse `/root/.controlmesh/workspace/output_to_user/knowledge_pack_latest.json` and verify:
    - `item_count` equals `len(items)`
    - every item has `item_id`, `source_id`, `title`, `summary`, `import_targets`,
      `import_policy`, `preprocess`, and `fallback_content`
