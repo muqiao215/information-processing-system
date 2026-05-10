@@ -14,6 +14,8 @@ The upstream acquisition path is now documented as an explicit local layer:
 
 - Source-oriented contracts and reference docs:
   `docs/信息源处理系统/`
+- Project-owned skill sources and the skill registry:
+  `skills/`
 - Canonical knowledge-pack builder and preprocessing:
   `tools/knowledge_pipeline/`
 - Cron task contracts and helper scripts used by the pipeline:
@@ -44,6 +46,11 @@ The upstream acquisition path is now documented as an explicit local layer:
 
 - Active sources remain source collectors with stable outputs. The acquisition
   orchestrator is a local layer, not a new content source.
+- Skill cleanup follows source-of-truth rules:
+  - repo-local true source: `information-processing-system/skills/`
+  - shared-global true source: `muqiao-private-sync-bundle/skills-selected/`
+  - runtime-only views: `/root/.controlmesh/workspace/skills`, `/root/.agents/skills`,
+    `/root/.codex/skills`
 - Firecrawl and `firecrawl/web-agent` are optional adapter references only, not
   required default dependencies.
 - Default public webpage and X handling uses no-extra-key paths first.
@@ -57,3 +64,5 @@ The upstream acquisition path is now documented as an explicit local layer:
   `output_to_user/`, `vendor/BuilderPulse/`, and a `notebooklm` CLI available on `PATH`.
 - The Obsidian/ops-facing reference set is also synced from this repo shape into
   `ops-vault`.
+- Current skill ownership and classification are tracked in
+  `skills/skills.registry.json`.

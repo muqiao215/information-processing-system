@@ -16,11 +16,13 @@ last_verified: 2026-04-19
 | cron_id | `daily-arxiv-llm-memory-discovery` |
 | layer | `collector + selector` |
 | schedule | `09:00 Asia/Shanghai` |
-| skill | `/root/.controlmesh/workspace/skills/arxiv-llm-memory-discovery` |
+| skill scope | `repo-local` |
+| source_of_truth | `/root/.controlmesh/workspace/information-processing-system/skills/arxiv-llm-memory-discovery` |
+| runtime view | `/root/.controlmesh/workspace/skills/arxiv-llm-memory-discovery` |
 | Hermes live copy | `/root/.controlmesh/workspace/vendor/hermes-agent/.hermes-home/skills/research/arxiv-llm-memory-discovery` |
-| private sync | `/root/private-sync-bundle/skills-selected/arxiv-llm-memory-discovery` |
+| shared bundle compatibility | `/root/private-sync-bundle/skills-selected/arxiv-llm-memory-discovery` |
 | task description | `/root/.controlmesh/workspace/cron_tasks/daily-arxiv-llm-memory-discovery/TASK_DESCRIPTION.md` |
-| discovery script | `/root/.controlmesh/workspace/skills/arxiv-llm-memory-discovery/scripts/discover_llm_memory_paper.py` |
+| discovery script | `/root/.controlmesh/workspace/information-processing-system/skills/arxiv-llm-memory-discovery/scripts/discover_llm_memory_paper.py` |
 
 ## Source Contract
 

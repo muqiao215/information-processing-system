@@ -1,0 +1,98 @@
+{
+  "arxiv-llm-memory-discovery": {
+    "scope": "repo-local",
+    "source_of_truth": "skills/arxiv-llm-memory-discovery",
+    "shared_source": "/root/private-sync-bundle/skills-selected/arxiv-llm-memory-discovery",
+    "runtime_targets": [
+      "/root/.controlmesh/workspace/skills/arxiv-llm-memory-discovery",
+      "/root/.agents/skills/arxiv-llm-memory-discovery",
+      "/root/.codex/skills/arxiv-llm-memory-discovery"
+    ],
+    "depends_on_project": "information-processing-system",
+    "status": "active",
+    "classification": "repo-local",
+    "action": "move_to_project",
+    "risk": "medium",
+    "notes": "Project-owned research collector coupled to the daily arXiv cron and knowledge_pack normalization."
+  },
+  "follow-builders": {
+    "scope": "shared-global",
+    "source_of_truth": "/root/private-sync-bundle/skills-selected/follow-builders",
+    "repo_reference": "docs + cron integration only",
+    "runtime_targets": [
+      "/root/.controlmesh/workspace/skills/follow-builders",
+      "/root/.agents/skills/follow-builders",
+      "/root/.codex/skills/follow-builders"
+    ],
+    "depends_on_project": null,
+    "status": "active",
+    "classification": "shared-global",
+    "action": "keep_in_shared_and_register",
+    "risk": "medium",
+    "notes": "Consumed by information-processing-system, but its feed and authoring model are shared and not project-owned."
+  },
+  "information-sources": {
+    "scope": "shared-global",
+    "source_of_truth": "/root/private-sync-bundle/skills-selected/information-sources",
+    "repo_reference": "docs policy dependency",
+    "runtime_targets": [
+      "/root/.controlmesh/workspace/skills/information-sources",
+      "/root/.agents/skills/information-sources",
+      "/root/.codex/skills/information-sources"
+    ],
+    "depends_on_project": null,
+    "status": "active",
+    "classification": "shared-global",
+    "action": "keep_in_shared_and_register",
+    "risk": "low",
+    "notes": "Global source-routing policy skill used across projects; this repo should consume it, not fork it."
+  },
+  "auto-paper-digest": {
+    "scope": "shared-global",
+    "source_of_truth": "/root/private-sync-bundle/skills-selected/auto-paper-digest",
+    "repo_reference": "pipeline reference only",
+    "runtime_targets": [
+      "/root/.controlmesh/workspace/skills/auto-paper-digest",
+      "/root/.agents/skills/auto-paper-digest",
+      "/root/.codex/skills/auto-paper-digest"
+    ],
+    "depends_on_project": null,
+    "status": "reference",
+    "classification": "shared-global",
+    "action": "keep_in_shared_and_register",
+    "risk": "low",
+    "notes": "Reference pipeline family, not a project-local information-processing-system skill source."
+  },
+  "notebooklm": {
+    "scope": "shared-global",
+    "source_of_truth": "/root/private-sync-bundle/skills-selected/notebooklm",
+    "repo_reference": "runtime dependency",
+    "runtime_targets": [
+      "/root/.controlmesh/workspace/skills/notebooklm",
+      "/root/.agents/skills/notebooklm",
+      "/root/.codex/skills/notebooklm"
+    ],
+    "depends_on_project": null,
+    "status": "active",
+    "classification": "shared-global",
+    "action": "keep_in_shared_and_register",
+    "risk": "low",
+    "notes": "Shared downstream consumer skill and CLI ecosystem dependency."
+  },
+  "firecrawl": {
+    "scope": "shared-global",
+    "source_of_truth": "/root/private-sync-bundle/skills-selected/firecrawl",
+    "repo_reference": "optional adapter reference",
+    "runtime_targets": [
+      "/root/.controlmesh/workspace/skills/firecrawl",
+      "/root/.agents/skills/firecrawl",
+      "/root/.codex/skills/firecrawl"
+    ],
+    "depends_on_project": null,
+    "status": "reference",
+    "classification": "shared-global",
+    "action": "keep_in_shared_and_register",
+    "risk": "low",
+    "notes": "Optional adapter family used as a reference, not as a project-owned active source."
+  }
+}

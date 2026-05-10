@@ -16,8 +16,9 @@ last_verified: 2026-04-19
 | cron_id | `ai-builders-digest-5briefs` |
 | layer | `collector + selector + synthesizer` |
 | schedule | `09:40 Asia/Shanghai` |
-| skill | `/root/.controlmesh/workspace/skills/follow-builders` |
-| private sync | `/root/private-sync-bundle/skills-selected/follow-builders` |
+| skill scope | `shared-global` |
+| source_of_truth | `/root/private-sync-bundle/skills-selected/follow-builders` |
+| runtime view | `/root/.controlmesh/workspace/skills/follow-builders` |
 | task description | `/root/.controlmesh/workspace/cron_tasks/ai-builders-digest-5briefs/TASK_DESCRIPTION.md` |
 | collector script | `/root/.controlmesh/workspace/cron_tasks/ai-builders-digest-5briefs/scripts/fetch_follow_builders.py` |
 

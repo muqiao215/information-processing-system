@@ -6,7 +6,7 @@ Find one high-signal arXiv paper about LLM memory and push a concise Telegram-fr
 
 ## Assignment
 
-This task should run the local `arxiv-llm-memory-discovery` skill and produce one
+This task should run the repo-local `arxiv-llm-memory-discovery` skill and produce one
 daily Telegram-friendly push message.
 
 Allowed write targets:
@@ -15,7 +15,7 @@ Allowed write targets:
 Execution steps:
 1. Read this task's memory file.
 2. Run the skill script:
-   - `python3 /root/.controlmesh/workspace/skills/arxiv-llm-memory-discovery/scripts/discover_llm_memory_paper.py`
+   - `python3 /root/.controlmesh/workspace/information-processing-system/skills/arxiv-llm-memory-discovery/scripts/discover_llm_memory_paper.py`
 3. The script is responsible for:
    - querying arXiv with `abs:`-scoped queries only
    - filtering out Mamba / state-space / time-series / memory-efficient-training noise

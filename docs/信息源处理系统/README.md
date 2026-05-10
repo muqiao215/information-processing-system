@@ -21,6 +21,7 @@ last_verified: 2026-04-20
 - [[信息源契约模板]]：新增信息源或改造旧任务时应填写的标准字段。
 - [[信息获取与知识消化分层]]：APD 风格重构后的两层架构口径，区分信息获取层和知识消化层。
 - [[信息流水线重构清单]]：后续改 cron / 脚本时按此清单落地。
+- [[skill真源治理]]：信息处理范围内的 skill source-of-truth 治理规则。
 - [[Adapters/acquisition-orchestrator]]：source collector 与 `knowledge_pack` 之间的采集编排层定义。
 - [[Adapters/firecrawl-web-agent-fetch]]：可选 Firecrawl / web-agent 参考适配器，不是 active source。
 
