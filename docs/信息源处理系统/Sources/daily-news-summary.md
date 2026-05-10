@@ -16,7 +16,7 @@ last_verified: 2026-04-19
 | cron_id | `daily-news-summary-7am` |
 | layer | `collector + synthesizer` |
 | schedule | `07:20 Asia/Shanghai` |
-| task description | `/root/.controlmesh/workspace/cron_tasks/daily-news-summary-7am/TASK_DESCRIPTION.md` |
+| task description | `/root/.controlmesh/workspace/information-processing-system/cron_tasks/daily-news-summary-7am/TASK_DESCRIPTION.md` |
 
 ## Source Contract
 

@@ -16,8 +16,8 @@ last_verified: 2026-04-19
 | cron_id | `daily-github-trending-ai-watch` |
 | layer | `collector + selector` |
 | schedule | `09:30 Asia/Shanghai` |
-| task description | `/root/.controlmesh/workspace/cron_tasks/daily-github-trending-ai-watch/TASK_DESCRIPTION.md` |
-| collector script | `/root/.controlmesh/workspace/cron_tasks/daily-github-trending-ai-watch/scripts/fetch_github_trending.py` |
+| task description | `/root/.controlmesh/workspace/information-processing-system/cron_tasks/daily-github-trending-ai-watch/TASK_DESCRIPTION.md` |
+| collector script | `/root/.controlmesh/workspace/information-processing-system/cron_tasks/daily-github-trending-ai-watch/scripts/fetch_github_trending.py` |
 
 ## Source Contract
 
