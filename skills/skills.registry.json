@@ -16,52 +16,52 @@
     "notes": "Project-owned research collector coupled to the daily arXiv cron and knowledge_pack normalization."
   },
   "follow-builders": {
-    "scope": "shared-global",
-    "source_of_truth": "/root/private-sync-bundle/skills-selected/follow-builders",
-    "repo_reference": "docs + cron integration only",
+    "scope": "repo-local",
+    "source_of_truth": "skills/follow-builders",
+    "shared_source": "/root/private-sync-bundle/skills-selected/follow-builders",
     "runtime_targets": [
       "/root/.controlmesh/workspace/skills/follow-builders",
       "/root/.agents/skills/follow-builders",
       "/root/.codex/skills/follow-builders"
     ],
-    "depends_on_project": null,
+    "depends_on_project": "information-processing-system",
     "status": "active",
-    "classification": "shared-global",
-    "action": "keep_in_shared_and_register",
+    "classification": "repo-local",
+    "action": "move_to_project",
     "risk": "medium",
-    "notes": "Consumed by information-processing-system, but its feed and authoring model are shared and not project-owned."
+    "notes": "Project-owned collector and digest workflow for the information-processing pipeline. Shared bundle copies are compatibility mirrors, not ownership roots."
   },
   "information-sources": {
-    "scope": "shared-global",
-    "source_of_truth": "/root/private-sync-bundle/skills-selected/information-sources",
-    "repo_reference": "docs policy dependency",
+    "scope": "repo-local",
+    "source_of_truth": "skills/information-sources",
+    "shared_source": "/root/private-sync-bundle/skills-selected/information-sources",
     "runtime_targets": [
       "/root/.controlmesh/workspace/skills/information-sources",
       "/root/.agents/skills/information-sources",
       "/root/.codex/skills/information-sources"
     ],
-    "depends_on_project": null,
+    "depends_on_project": "information-processing-system",
     "status": "active",
-    "classification": "shared-global",
-    "action": "keep_in_shared_and_register",
+    "classification": "repo-local",
+    "action": "move_to_project",
     "risk": "low",
-    "notes": "Global source-routing policy skill used across projects; this repo should consume it, not fork it."
+    "notes": "Information-processing-specific source-routing policy skill. Runtime copies and shared mirrors are downstream deployment surfaces."
   },
   "auto-paper-digest": {
-    "scope": "shared-global",
-    "source_of_truth": "/root/private-sync-bundle/skills-selected/auto-paper-digest",
-    "repo_reference": "pipeline reference only",
+    "scope": "repo-local",
+    "source_of_truth": "skills/auto-paper-digest",
+    "shared_source": "/root/private-sync-bundle/skills-selected/auto-paper-digest",
     "runtime_targets": [
       "/root/.controlmesh/workspace/skills/auto-paper-digest",
       "/root/.agents/skills/auto-paper-digest",
       "/root/.codex/skills/auto-paper-digest"
     ],
-    "depends_on_project": null,
+    "depends_on_project": "information-processing-system",
     "status": "reference",
-    "classification": "shared-global",
-    "action": "keep_in_shared_and_register",
+    "classification": "repo-local",
+    "action": "move_to_project",
     "risk": "low",
-    "notes": "Reference pipeline family, not a project-local information-processing-system skill source."
+    "notes": "Repo-local reference wrapper for the information-processing pipeline's APD architecture and operations model."
   },
   "notebooklm": {
     "scope": "shared-global",

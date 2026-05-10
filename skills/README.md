@@ -30,6 +30,9 @@ processing system itself, for example:
 Current repo-local owned skills:
 
 - `arxiv-llm-memory-discovery`
+- `follow-builders`
+- `information-sources`
+- `auto-paper-digest`
 
 ## What Does Not Belong Here
 
@@ -42,9 +45,6 @@ Instead:
 
 Examples of shared-global skills currently used by this pipeline:
 
-- `follow-builders`
-- `information-sources`
-- `auto-paper-digest`
 - `notebooklm`
 - `firecrawl`
 

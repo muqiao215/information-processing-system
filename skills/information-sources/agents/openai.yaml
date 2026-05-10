@@ -1,0 +1,7 @@
+interface:
+  display_name: "Information Sources"
+  short_description: "Route queries to the right source and tool"
+  default_prompt: "Use $information-sources to choose the source of truth, preferred tool, and fallback path before gathering information."
+
+policy:
+  allow_implicit_invocation: true

@@ -51,6 +51,9 @@ The upstream acquisition path is now documented as an explicit local layer:
   - shared-global true source: `muqiao-private-sync-bundle/skills-selected/`
   - runtime-only views: `/root/.controlmesh/workspace/skills`, `/root/.agents/skills`,
     `/root/.codex/skills`
+- For this repository, information-processing-dedicated skills may be promoted
+  to repo-local even if they were previously distributed through the shared
+  bundle, because they are not part of the general coding toolbox.
 - Firecrawl and `firecrawl/web-agent` are optional adapter references only, not
   required default dependencies.
 - Default public webpage and X handling uses no-extra-key paths first.

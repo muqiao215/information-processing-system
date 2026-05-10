@@ -34,9 +34,11 @@ last_verified: 2026-05-11
 1. skill 清理不以当前目录存在为准，而以事实来源为准。
 2. runtime/view 目录不能直接作为上游修改、提交或推送。
 3. 项目强依赖 skill 必须进入 repo-local 真源，不应继续只挂在 shared bundle。
-4. 跨项目通用 skill 必须保留在 shared-global 真源，不在项目 repo 中重复造第二个真源。
-5. 项目 repo 可以登记 shared skill 依赖，但不应把“依赖”误写成“所有权”。
-6. 每次迁移都必须同时处理：
+4. 默认情况下，跨项目通用 skill 才保留在 shared-global 真源。
+5. 但对 `information-processing-system` 这类垂直仓，若某 skill 主要服务这条流水线，
+   且不希望常驻进入通用编码工具箱，可以提升为 repo-local 真源。
+6. 项目 repo 可以登记 shared skill 依赖，但不应把“依赖”误写成“所有权”。
+7. 每次迁移都必须同时处理：
    - 新真源落位
    - 旧真源删除或降级为依赖登记
    - runtime 残留清理
@@ -47,10 +49,10 @@ last_verified: 2026-05-11
 
 - `repo-local`
   - `arxiv-llm-memory-discovery`
-- `shared-global`
   - `follow-builders`
   - `information-sources`
   - `auto-paper-digest`
+- `shared-global`
   - `notebooklm`
   - `firecrawl`
 

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Auto Paper Digest"
+  short_description: "Operate the APD paper-to-video pipeline."
+  default_prompt: "Use $auto-paper-digest to operate the local Auto Paper Digest pipeline in E:\\web\\tools\\auto-paper-digest."
