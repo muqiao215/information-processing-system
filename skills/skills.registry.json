@@ -2,11 +2,8 @@
   "arxiv-llm-memory-discovery": {
     "scope": "repo-local",
     "source_of_truth": "skills/arxiv-llm-memory-discovery",
-    "shared_source": "/root/private-sync-bundle/skills-selected/arxiv-llm-memory-discovery",
     "runtime_targets": [
-      "/root/.controlmesh/workspace/skills/arxiv-llm-memory-discovery",
-      "/root/.agents/skills/arxiv-llm-memory-discovery",
-      "/root/.codex/skills/arxiv-llm-memory-discovery"
+      "/root/.controlmesh/workspace/information-processing-system/skills/arxiv-llm-memory-discovery"
     ],
     "depends_on_project": "information-processing-system",
     "status": "active",
