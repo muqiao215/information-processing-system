@@ -25,7 +25,7 @@ def current_locations(skill_name: str) -> list[str]:
     locations: list[str] = []
     for root in RUNTIME_ROOTS:
         candidate = root / skill_name
-        if candidate.exists():
+        if candidate.exists() and candidate.resolve(strict=False).exists():
             locations.append(str(candidate))
     return locations
 

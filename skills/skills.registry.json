@@ -18,43 +18,34 @@
   "follow-builders": {
     "scope": "repo-local",
     "source_of_truth": "skills/follow-builders",
-    "shared_source": "/root/private-sync-bundle/skills-selected/follow-builders",
     "runtime_targets": [
-      "/root/.controlmesh/workspace/skills/follow-builders",
-      "/root/.agents/skills/follow-builders",
-      "/root/.codex/skills/follow-builders"
+      "/root/.controlmesh/workspace/information-processing-system/skills/follow-builders"
     ],
     "depends_on_project": "information-processing-system",
     "status": "active",
     "classification": "repo-local",
     "action": "move_to_project",
     "risk": "medium",
-    "notes": "Project-owned collector and digest workflow for the information-processing pipeline. Shared bundle copies are compatibility mirrors, not ownership roots."
+    "notes": "Project-owned collector and digest workflow for the information-processing pipeline."
   },
   "information-sources": {
     "scope": "repo-local",
     "source_of_truth": "skills/information-sources",
-    "shared_source": "/root/private-sync-bundle/skills-selected/information-sources",
     "runtime_targets": [
-      "/root/.controlmesh/workspace/skills/information-sources",
-      "/root/.agents/skills/information-sources",
-      "/root/.codex/skills/information-sources"
+      "/root/.controlmesh/workspace/information-processing-system/skills/information-sources"
     ],
     "depends_on_project": "information-processing-system",
     "status": "active",
     "classification": "repo-local",
     "action": "move_to_project",
     "risk": "low",
-    "notes": "Information-processing-specific source-routing policy skill. Runtime copies and shared mirrors are downstream deployment surfaces."
+    "notes": "Information-processing-specific source-routing policy skill."
   },
   "auto-paper-digest": {
     "scope": "repo-local",
     "source_of_truth": "skills/auto-paper-digest",
-    "shared_source": "/root/private-sync-bundle/skills-selected/auto-paper-digest",
     "runtime_targets": [
-      "/root/.controlmesh/workspace/skills/auto-paper-digest",
-      "/root/.agents/skills/auto-paper-digest",
-      "/root/.codex/skills/auto-paper-digest"
+      "/root/.controlmesh/workspace/information-processing-system/skills/auto-paper-digest"
     ],
     "depends_on_project": "information-processing-system",
     "status": "reference",
