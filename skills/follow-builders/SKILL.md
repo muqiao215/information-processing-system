@@ -11,9 +11,12 @@ digestible summaries of what they're saying.
 
 Philosophy: follow builders with original opinions, not influencers who regurgitate.
 
-**No API keys or environment variables are required from users.** All content
-(X/Twitter posts and YouTube transcripts) is fetched centrally and served via
-a public feed. Users only need API keys if they choose Telegram or email delivery.
+**No API keys or environment variables are required from users.** This repo
+ships a repo-local mirror of the public `follow-builders` feeds under
+`skills/follow-builders/data/public-feed-mirror/`. Runtime should prefer that
+mirror; refresh it with `scripts/sync_public_feed_mirror.py` when you want a
+new upstream snapshot. Users only need API keys if they choose Telegram or
+email delivery.
 
 ## Detecting Platform
 

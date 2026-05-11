@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-05-11T02:11:09.334256+00:00",
+  "sourceRepo": "https://github.com/zarazhangrui/follow-builders",
+  "files": {
+    "feed-x.json": {
+      "url": "https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/feed-x.json",
+      "bytes": 18267,
+      "records": 11
+    },
+    "feed-podcasts.json": {
+      "url": "https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/feed-podcasts.json",
+      "bytes": 30057,
+      "records": 1
+    },
+    "feed-blogs.json": {
+      "url": "https://raw.githubusercontent.com/zarazhangrui/follow-builders/main/feed-blogs.json",
+      "bytes": 17172,
+      "records": 3
+    }
+  }
+}

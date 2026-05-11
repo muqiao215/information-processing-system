@@ -55,8 +55,10 @@ of every upstream content source.
 - `daily-github-trending-ai-watch`
   Scrapes the live GitHub Trending daily page.
 - `ai-builders-digest-5briefs`
-  Depends on the public raw feed published by
-  `zarazhangrui/follow-builders`.
+  Uses the repo-local mirror under
+  `skills/follow-builders/data/public-feed-mirror/`, refreshed from the public
+  upstream `zarazhangrui/follow-builders` via
+  `skills/follow-builders/scripts/sync_public_feed_mirror.py`.
 - `daily-builderpulse-opportunity-radar`
   Parses the external repository checkout at `vendor/BuilderPulse`, whose
   upstream is `BuilderPulse/BuilderPulse`.
