@@ -12,11 +12,7 @@ from urllib.request import Request, urlopen
 
 
 DEFAULT_SOURCE_IDS = [
-    "36kr-quick",
-    "ithome",
     "hackernews",
-    "github",
-    "producthunt",
 ]
 USER_AGENT = "information-processing-system/newsnow-bridge/1.0"
 

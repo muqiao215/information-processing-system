@@ -97,6 +97,14 @@ class NewsnowBridgeTests(unittest.TestCase):
         self.assertEqual(payload["source_ids"], ["ithome"])
         self.assertEqual(payload["total_item_count"], 1)
 
+    def test_default_source_ids_are_hackernews_only(self) -> None:
+        module = load_module(
+            "fetch_newsnow_snapshot_defaults",
+            "cron_tasks/daily-news-summary-7am/scripts/fetch_newsnow_snapshot.py",
+        )
+
+        self.assertEqual(module.DEFAULT_SOURCE_IDS, ["hackernews"])
+
 
 if __name__ == "__main__":
     unittest.main()
