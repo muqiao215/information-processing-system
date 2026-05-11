@@ -33,6 +33,7 @@ Current repo-local owned skills:
 - `follow-builders`
 - `information-sources`
 - `auto-paper-digest`
+- `ak-rss-digest`
 
 ## What Does Not Belong Here
 

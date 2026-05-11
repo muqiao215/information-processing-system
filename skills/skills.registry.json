@@ -51,6 +51,19 @@
     "risk": "low",
     "notes": "Repo-local reference wrapper for the information-processing pipeline's APD architecture and operations model."
   },
+  "ak-rss-digest": {
+    "scope": "repo-local",
+    "source_of_truth": "skills/ak-rss-digest",
+    "runtime_targets": [
+      "/root/.controlmesh/workspace/information-processing-system/skills/ak-rss-digest"
+    ],
+    "depends_on_project": "information-processing-system",
+    "status": "active",
+    "classification": "repo-local",
+    "action": "move_to_project",
+    "risk": "low",
+    "notes": "Project-owned RSS bundle collector used by the weekly refresh layer and adjacent information intake workflows."
+  },
   "notebooklm": {
     "scope": "shared-global",
     "source_of_truth": "/root/private-sync-bundle/skills-selected/notebooklm",
