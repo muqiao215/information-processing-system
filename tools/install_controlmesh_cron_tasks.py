@@ -416,11 +416,13 @@ def builders_digest_wrapper() -> str:
             )
 
             manifest = json.loads(OUTPUT_JSON.read_text(encoding="utf-8"))
-            selected_items = manifest.get("selected_items")
-            if isinstance(selected_items, list):
-                selected_count = len(selected_items)
-            else:
-                selected_count = len(manifest.get("selected", []))
+            selected_count = manifest.get("selectedSourceCount")
+            if not isinstance(selected_count, int):
+                selected_sources = manifest.get("selectedSources")
+                if isinstance(selected_sources, list):
+                    selected_count = len(selected_sources)
+                else:
+                    selected_count = 0
             summary = {
                 "status": "ok",
                 "bundle_path": str(bundle_path),
