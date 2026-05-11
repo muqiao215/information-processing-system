@@ -15,7 +15,7 @@ Allowed write targets:
 Execution steps:
 1. Read this task's memory file.
 2. Run the skill script:
-   - `python3 /root/.controlmesh/workspace/information-processing-system/skills/arxiv-llm-memory-discovery/scripts/discover_llm_memory_paper.py`
+   - `python3 /root/.controlmesh/workspace/repos/information-processing-system/skills/arxiv-llm-memory-discovery/scripts/discover_llm_memory_paper.py`
 3. The script is responsible for:
    - querying arXiv with `abs:`-scoped queries only
    - filtering out Mamba / state-space / time-series / memory-efficient-training noise

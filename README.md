@@ -86,6 +86,12 @@ of every upstream content source.
 
 - This repo intentionally excludes runtime outputs from `output_to_user/`.
 - Browser/runtime-specific login state is not stored here.
+- This repo is the source-of-truth for information-processing cron task content.
+  Native ControlMesh runtime folders under `~/.controlmesh/workspace/cron_tasks/`
+  should be populated from here after jobs are created with the official
+  ControlMesh cron tools.
+- Installer for the currently aligned native task set:
+  `python3 repos/information-processing-system/tools/install_controlmesh_cron_tasks.py`
 - Runtime execution still expects sibling workspace resources such as
   `output_to_user/`, `vendor/BuilderPulse/`, `vendor/newsnow/`, and a
   `notebooklm` CLI available on `PATH`.

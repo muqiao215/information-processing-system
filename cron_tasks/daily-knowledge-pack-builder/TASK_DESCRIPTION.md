@@ -23,7 +23,7 @@ Execution steps:
    - `/root/.controlmesh/workspace/output_to_user/builderpulse_opportunity_radar_sources_latest.json`
    - `/root/.controlmesh/workspace/output_to_user/arxiv_llm_memory_discovery_latest.json`
 3. Run the canonical builder:
-   - `cd /root/.controlmesh/workspace && python3 tools/knowledge_pipeline/normalization/build_knowledge_pack.py`
+   - `cd /root/.controlmesh/workspace && python3 repos/information-processing-system/tools/knowledge_pipeline/normalization/build_knowledge_pack.py`
 4. The builder must:
    - normalize `follow-builders` selected sources
    - normalize `BuilderPulse` opportunity radar selected sections

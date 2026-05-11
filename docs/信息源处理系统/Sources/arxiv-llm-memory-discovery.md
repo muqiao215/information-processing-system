@@ -18,8 +18,9 @@ last_verified: 2026-04-19
 | schedule | `09:00 Asia/Shanghai` |
 | skill scope | `repo-local` |
 | source_of_truth | `/root/.controlmesh/workspace/information-processing-system/skills/arxiv-llm-memory-discovery` |
-| task description | `/root/.controlmesh/workspace/cron_tasks/daily-arxiv-llm-memory-discovery/TASK_DESCRIPTION.md` |
-| discovery script | `/root/.controlmesh/workspace/information-processing-system/skills/arxiv-llm-memory-discovery/scripts/discover_llm_memory_paper.py` |
+| repo task contract | `/root/.controlmesh/workspace/repos/information-processing-system/cron_tasks/daily-arxiv-llm-memory-discovery/TASK_DESCRIPTION.md` |
+| runtime install target | `/root/.controlmesh/workspace/cron_tasks/daily-arxiv-llm-memory-discovery/TASK_DESCRIPTION.md` |
+| discovery script | `/root/.controlmesh/workspace/repos/information-processing-system/skills/arxiv-llm-memory-discovery/scripts/discover_llm_memory_paper.py` |
 
 ## Source Contract
 

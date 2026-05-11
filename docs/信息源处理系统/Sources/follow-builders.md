@@ -18,8 +18,9 @@ last_verified: 2026-04-19
 | schedule | `09:40 Asia/Shanghai` |
 | skill scope | `repo-local` |
 | source_of_truth | `/root/.controlmesh/workspace/information-processing-system/skills/follow-builders` |
-| task description | `/root/.controlmesh/workspace/cron_tasks/ai-builders-digest-5briefs/TASK_DESCRIPTION.md` |
-| collector script | `/root/.controlmesh/workspace/cron_tasks/ai-builders-digest-5briefs/scripts/fetch_follow_builders.py` |
+| repo task contract | `/root/.controlmesh/workspace/repos/information-processing-system/cron_tasks/ai-builders-digest-5briefs/TASK_DESCRIPTION.md` |
+| runtime install target | `/root/.controlmesh/workspace/cron_tasks/ai-builders-digest-5briefs/TASK_DESCRIPTION.md` |
+| collector script | `/root/.controlmesh/workspace/repos/information-processing-system/cron_tasks/ai-builders-digest-5briefs/scripts/fetch_follow_builders.py` |
 
 ## Source Contract
 

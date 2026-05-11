@@ -18,8 +18,9 @@ last_verified: 2026-04-19
 | schedule | `10:10 Asia/Shanghai` |
 | upstream repo | `BuilderPulse/BuilderPulse` |
 | local repo | `/root/.controlmesh/workspace/vendor/BuilderPulse` |
-| task description | `/root/.controlmesh/workspace/cron_tasks/daily-builderpulse-opportunity-radar/TASK_DESCRIPTION.md` |
-| parser script | `/root/.controlmesh/workspace/cron_tasks/daily-builderpulse-opportunity-radar/scripts/build_builderpulse_radar.py` |
+| repo task contract | `/root/.controlmesh/workspace/repos/information-processing-system/cron_tasks/daily-builderpulse-opportunity-radar/TASK_DESCRIPTION.md` |
+| runtime install target | `/root/.controlmesh/workspace/cron_tasks/daily-builderpulse-opportunity-radar/TASK_DESCRIPTION.md` |
+| parser script | `/root/.controlmesh/workspace/repos/information-processing-system/cron_tasks/daily-builderpulse-opportunity-radar/scripts/build_builderpulse_radar.py` |
 
 ## Source Contract
 

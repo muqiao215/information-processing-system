@@ -7,6 +7,11 @@ for downstream NotebookLM generation, without relying on OpenClaw runtime.
 
 ## Assignment
 
+This repository file is the source-of-truth task contract. When installed into a
+native ControlMesh `cron_tasks/<name>/` folder, the runtime task should call its
+local wrapper `scripts/run_task.py`, which then invokes the repo-owned fetcher
+and builder using stable absolute workspace paths.
+
 This task does not need browser automation. It should finish the text digests and
 write the latest source manifest for the next task.
 
@@ -15,22 +20,25 @@ Allowed write targets:
 
 Execution steps:
 1. Read this task's memory file.
-2. Run:
+2. Prefer the installed runtime wrapper:
+   - `python3 scripts/run_task.py`
+3. If you are running directly from this repository instead of an installed
+   ControlMesh cron task folder, run:
    - `python3 scripts/fetch_follow_builders.py > /tmp/follow_builders_bundle.json`
-3. Inspect the fetched JSON bundle. If feeds failed to load, report that clearly.
-4. Generate five Chinese digests:
+4. Inspect the fetched JSON bundle. If feeds failed to load, report that clearly.
+5. Generate five Chinese digests:
    - A = AI前沿与工具
    - B = 创业与战略
    - C = 产品与体验
    - D = 行业与观点
    - E = 技术实践
-5. Each digest must select at least 5 substantial items when the feed supports it.
-6. For each selected item, keep the original source URL in the machine-readable
+6. Each digest must select at least 5 substantial items when the feed supports it.
+7. For each selected item, keep the original source URL in the machine-readable
    manifest, but do not dump raw links excessively in the human report.
-7. Save two files:
+8. Save two files:
    - `/root/.controlmesh/workspace/output_to_user/ai_builders_digest_latest.md`
    - `/root/.controlmesh/workspace/output_to_user/ai_builders_digest_sources_latest.json`
-8. The JSON manifest must contain the selected items and URLs that the NotebookLM
+9. The JSON manifest must contain the selected items and URLs that the NotebookLM
    task should import later.
 
 Important:
