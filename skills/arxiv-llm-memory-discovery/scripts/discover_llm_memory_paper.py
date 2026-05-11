@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import time
@@ -11,16 +12,27 @@ import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
 from dataclasses import asdict, dataclass
-from datetime import UTC, datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 
 ARXIV_API = "https://export.arxiv.org/api/query"
-DEFAULT_MD_OUT = Path("/root/.controlmesh/workspace/output_to_user/arxiv_llm_memory_discovery_latest.md")
-DEFAULT_JSON_OUT = Path("/root/.controlmesh/workspace/output_to_user/arxiv_llm_memory_discovery_latest.json")
-DEFAULT_STATE_OUT = Path("/root/.controlmesh/workspace/output_to_user/arxiv_llm_memory_discovery_state.json")
 USER_AGENT = "arxiv-llm-memory-discovery/1.0 (daily personal research digest)"
 NS = {"a": "http://www.w3.org/2005/Atom", "arxiv": "http://arxiv.org/schemas/atom"}
+UTC = timezone.utc
+
+
+def resolve_workspace_root() -> Path:
+    repo_root = Path(__file__).resolve().parents[3]
+    if repo_root.parent.name == "repos":
+        return repo_root.parent.parent
+    return repo_root.parent
+
+
+WORKSPACE_ROOT = Path(os.environ.get("WORKSPACE_ROOT", resolve_workspace_root()))
+DEFAULT_MD_OUT = WORKSPACE_ROOT / "output_to_user" / "arxiv_llm_memory_discovery_latest.md"
+DEFAULT_JSON_OUT = WORKSPACE_ROOT / "output_to_user" / "arxiv_llm_memory_discovery_latest.json"
+DEFAULT_STATE_OUT = WORKSPACE_ROOT / "output_to_user" / "arxiv_llm_memory_discovery_state.json"
 
 QUERIES = [
     'abs:LLM AND abs:memory',

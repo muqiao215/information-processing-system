@@ -1,14 +1,25 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import json
+import os
 import re
 from datetime import datetime, timezone
 from pathlib import Path
 
 
-BUNDLE_PATH = Path("/tmp/follow_builders_bundle.json")
-WORKSPACE_ROOT = Path(__file__).resolve().parents[4].parent
+DEFAULT_BUNDLE_PATH = Path("/tmp/follow_builders_bundle.json")
+
+
+def resolve_workspace_root() -> Path:
+    repo_root = Path(__file__).resolve().parents[4]
+    if repo_root.parent.name == "repos":
+        return repo_root.parent.parent
+    return repo_root.parent
+
+
+WORKSPACE_ROOT = Path(os.environ.get("WORKSPACE_ROOT", resolve_workspace_root()))
 MARKDOWN_PATH = WORKSPACE_ROOT / "output_to_user" / "ai_builders_digest_latest.md"
 MANIFEST_PATH = WORKSPACE_ROOT / "output_to_user" / "ai_builders_digest_sources_latest.json"
 
@@ -610,10 +621,23 @@ CURATED_TITLE_OVERRIDES = {
 }
 
 
-def load_bundle() -> dict:
-    if not BUNDLE_PATH.exists():
-        raise FileNotFoundError(f"Bundle not found: {BUNDLE_PATH}")
-    return json.loads(BUNDLE_PATH.read_text())
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Build the AI builders digest outputs from a fetched follow-builders bundle."
+    )
+    parser.add_argument(
+        "--bundle-path",
+        type=Path,
+        default=DEFAULT_BUNDLE_PATH,
+        help="Path to the JSON bundle produced by fetch_follow_builders.py.",
+    )
+    return parser.parse_args()
+
+
+def load_bundle(bundle_path: Path) -> dict:
+    if not bundle_path.exists():
+        raise FileNotFoundError(f"Bundle not found: {bundle_path}")
+    return json.loads(bundle_path.read_text())
 
 
 def format_generated_at(iso_value: str | None) -> str:
@@ -1006,7 +1030,8 @@ def build_markdown(manifest: dict) -> str:
 
 
 def main() -> None:
-    bundle = load_bundle()
+    args = parse_args()
+    bundle = load_bundle(args.bundle_path)
     manifest = build_manifest(bundle)
     markdown = build_markdown(manifest)
     MARKDOWN_PATH.write_text(markdown)

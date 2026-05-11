@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -13,7 +14,15 @@ from preprocess_sources import apply_preprocessing
 
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
-WORKSPACE = REPO_ROOT.parent
+
+
+def resolve_workspace_root(repo_root: Path) -> Path:
+    if repo_root.parent.name == "repos":
+        return repo_root.parent.parent
+    return repo_root.parent
+
+
+WORKSPACE = Path(os.environ.get("WORKSPACE_ROOT", resolve_workspace_root(REPO_ROOT)))
 OUTPUT_ROOT = WORKSPACE / "output_to_user"
 PIPELINE_ROOT = OUTPUT_ROOT / "information_pipeline" / "bundles"
 PREPROCESS_CACHE_ROOT = OUTPUT_ROOT / "information_pipeline" / "preprocessed"

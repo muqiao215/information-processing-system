@@ -3,13 +3,21 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 
 
-WORKSPACE_ROOT = Path(__file__).resolve().parents[4].parent
+def resolve_workspace_root() -> Path:
+    repo_root = Path(__file__).resolve().parents[4]
+    if repo_root.parent.name == "repos":
+        return repo_root.parent.parent
+    return repo_root.parent
+
+
+WORKSPACE_ROOT = Path(os.environ.get("WORKSPACE_ROOT", resolve_workspace_root()))
 DEFAULT_REPO_ROOT = WORKSPACE_ROOT / "vendor" / "BuilderPulse"
 DEFAULT_MD_OUT = WORKSPACE_ROOT / "output_to_user" / "builderpulse_opportunity_radar_latest.md"
 DEFAULT_JSON_OUT = WORKSPACE_ROOT / "output_to_user" / "builderpulse_opportunity_radar_sources_latest.json"
