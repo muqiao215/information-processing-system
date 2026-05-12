@@ -65,9 +65,22 @@ Important:
 - Use `generate report`, not the old invalid `generate summary`.
 - Do not generate `slide-deck` or `video` in this task.
 - Treat report download as the only success gate for this daily task.
+- Date semantics are explicit:
+  - `run_date`: the local calendar date in `Asia/Shanghai` when this wrapper runs
+  - `data_date`: the knowledge-pack date being reported
+  - `report_date`: same as `data_date` for this task
+  - artifact filenames are keyed by `data_date`, not UTC wall-clock date
+- Chrome/CDP access must be protected by the file lock
+  `~/.controlmesh/locks/notebooklm_chrome.lock`. Scheduler dependencies are
+  hints only; process-level locking is mandatory.
 
 Run metadata JSON should include:
 - `date`
+- `report_date`
+- `data_date`
+- `run_date`
+- `timezone`
+- `artifact_date_basis`
 - `notebook_id`
 - `notebook_title`
 - `report_artifact_id`

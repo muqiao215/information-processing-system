@@ -631,6 +631,14 @@ def notebooklm_content_gen_task_description() -> str:
         - Use `generate report --format briefing_doc`.
         - Do not generate `slide-deck` or `video` in this task.
         - Treat the report markdown download as the only success gate.
+        - Date semantics are explicit:
+          - `run_date`: the local calendar date in `Asia/Shanghai` when this wrapper runs
+          - `data_date`: the knowledge-pack date being reported
+          - `report_date`: same as `data_date` for this task
+          - artifact filenames are keyed by `data_date`, not UTC wall-clock date
+        - Chrome/CDP access must be protected by the file lock
+          `~/.controlmesh/locks/notebooklm_chrome.lock`. Scheduler dependencies are
+          hints only; process-level locking is mandatory.
 
         ## Output
 
@@ -654,12 +662,17 @@ def notebooklm_content_gen_wrapper() -> str:
         #!/usr/bin/env python3
         from __future__ import annotations
 
+        import errno
+        import fcntl
         import json
         import os
         import shutil
         import subprocess
+        import time
+        from contextlib import contextmanager
         from datetime import datetime
         from pathlib import Path
+        from zoneinfo import ZoneInfo
 
 
         WORKSPACE_ROOT = Path(os.environ.get("WORKSPACE_ROOT", "/root/.controlmesh/workspace"))
@@ -670,16 +683,58 @@ def notebooklm_content_gen_wrapper() -> str:
         KNOWLEDGE_PACK_MD = OUTPUT_ROOT / "knowledge_pack_latest.md"
         LEGACY_MANIFEST_PATH = OUTPUT_ROOT / "ai_builders_digest_sources_latest.json"
         NOTEBOOKLM_BIN = shutil.which("notebooklm") or "notebooklm"
+        USER_TIMEZONE = os.environ.get("USER_TIMEZONE", "Asia/Shanghai")
+        LOCK_ROOT = Path.home() / ".controlmesh" / "locks"
+        LOCK_PATH = LOCK_ROOT / "notebooklm_chrome.lock"
         HOST = "127.0.0.1"
         PORT = 9222
 
 
         def now_local() -> datetime:
-            return datetime.now().astimezone()
+            return datetime.now(ZoneInfo(USER_TIMEZONE))
 
 
         def date_compact(date_value: str) -> str:
             return date_value.replace("-", "")
+
+
+        @contextmanager
+        def notebooklm_lock(timeout_seconds: float = 1.0):
+            LOCK_ROOT.mkdir(parents=True, exist_ok=True)
+            with LOCK_PATH.open("a+", encoding="utf-8") as handle:
+                start = time.monotonic()
+                while True:
+                    try:
+                        fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+                        handle.seek(0)
+                        handle.truncate()
+                        handle.write(
+                            json.dumps(
+                                {
+                                    "pid": os.getpid(),
+                                    "acquired_at": now_local().isoformat(timespec="seconds"),
+                                    "task_root": str(TASK_ROOT),
+                                },
+                                ensure_ascii=False,
+                            )
+                            + "\\n"
+                        )
+                        handle.flush()
+                        try:
+                            yield
+                        finally:
+                            handle.seek(0)
+                            handle.truncate()
+                            fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+                        return
+                    except OSError as exc:
+                        if exc.errno not in {errno.EACCES, errno.EAGAIN}:
+                            raise
+                        if time.monotonic() - start >= timeout_seconds:
+                            raise RuntimeError(
+                                f"NotebookLM Chrome lock is busy: {LOCK_PATH}"
+                            ) from exc
+                        time.sleep(0.1)
 
 
         def run_command(args: list[str], timeout: float | None = None) -> subprocess.CompletedProcess:
@@ -819,210 +874,226 @@ def notebooklm_content_gen_wrapper() -> str:
             ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
             OUTPUT_ROOT.mkdir(parents=True, exist_ok=True)
 
-            created_at = now_local()
-            preflight_result = preflight()
+            with notebooklm_lock():
+                created_at = now_local()
+                run_date = created_at.date().isoformat()
+                preflight_result = preflight()
 
-            compatibility_mode = False
-            legacy_manifest_path = None
-            fallback_source_path = None
+                compatibility_mode = False
+                legacy_manifest_path = None
+                fallback_source_path = None
+                artifact_date_basis = "data_date"
 
-            if KNOWLEDGE_PACK_PATH.exists():
-                source_payload = load_json(KNOWLEDGE_PACK_PATH)
-                date_value = str(source_payload.get("date") or created_at.date().isoformat())
-                notebook_title = f"NotebookLM Daily Report {date_value}"
-                source_entries = []
-                seen_targets = set()
-                for item in source_payload.get("items", []):
-                    selected = choose_canonical_target(item)
-                    if not selected:
+                if KNOWLEDGE_PACK_PATH.exists():
+                    source_payload = load_json(KNOWLEDGE_PACK_PATH)
+                    data_date = str(source_payload.get("data_date") or source_payload.get("date") or run_date)
+                    notebook_title = f"NotebookLM Daily Report {data_date}"
+                    source_entries = []
+                    seen_targets = set()
+                    for item in source_payload.get("items", []):
+                        selected = choose_canonical_target(item)
+                        if not selected:
+                            source_entries.append(
+                                {
+                                    "item_id": item.get("item_id"),
+                                    "title": item.get("title"),
+                                    "ok": False,
+                                    "mode": None,
+                                    "value": None,
+                                    "reason": "no_import_target",
+                                }
+                            )
+                            continue
+                        mode, value = selected
+                        dedupe_key = (mode, value)
+                        if dedupe_key in seen_targets:
+                            continue
+                        seen_targets.add(dedupe_key)
                         source_entries.append(
                             {
                                 "item_id": item.get("item_id"),
                                 "title": item.get("title"),
-                                "ok": False,
-                                "mode": None,
-                                "value": None,
-                                "reason": "no_import_target",
+                                "ok": None,
+                                "mode": mode,
+                                "value": value,
                             }
                         )
-                        continue
-                    mode, value = selected
-                    dedupe_key = (mode, value)
-                    if dedupe_key in seen_targets:
-                        continue
-                    seen_targets.add(dedupe_key)
-                    source_entries.append(
-                        {
-                            "item_id": item.get("item_id"),
-                            "title": item.get("title"),
-                            "ok": None,
-                            "mode": mode,
-                            "value": value,
-                        }
+                    fallback_candidate = str(
+                        source_payload.get("fallback_markdown_path") or KNOWLEDGE_PACK_MD
                     )
-                fallback_candidate = str(
-                    source_payload.get("fallback_markdown_path") or KNOWLEDGE_PACK_MD
-                )
-            elif LEGACY_MANIFEST_PATH.exists():
-                compatibility_mode = True
-                legacy_manifest_path = str(LEGACY_MANIFEST_PATH)
-                source_payload = load_json(LEGACY_MANIFEST_PATH)
-                date_value = created_at.date().isoformat()
-                notebook_title = f"NotebookLM Legacy Report {date_value}"
-                source_entries = []
-                fallback_candidate_path = build_legacy_fallback(
-                    source_payload,
-                    ARTIFACT_DIR / f"{date_compact(date_value)}-legacy-source-bundle.md",
-                )
-                fallback_candidate = str(fallback_candidate_path)
-            else:
-                raise RuntimeError(
-                    "Neither knowledge_pack_latest.json nor ai_builders_digest_sources_latest.json exists"
-                )
-
-            created = ensure_ok(
-                run_notebooklm(["notebook", "create", notebook_title, "--json"], timeout=120),
-                "notebook create",
-            )
-            if not isinstance(created, dict) or not created.get("id"):
-                raise RuntimeError("Notebook creation did not return a notebook id")
-            notebook_id = str(created["id"])
-
-            if compatibility_mode:
-                urls_seen = set()
-                for index, source in enumerate(source_payload.get("selectedSources", []), start=1):
-                    url = str(source.get("url") or "").strip()
-                    if not url or url in urls_seen:
-                        continue
-                    urls_seen.add(url)
-                    imported = import_target(notebook_id=notebook_id, mode="url", value=url)
-                    source_entries.append(
-                        {
-                            "item_id": f"legacy:{index}",
-                            "title": source.get("title") or source.get("originalTitle"),
-                            **imported,
-                        }
+                elif LEGACY_MANIFEST_PATH.exists():
+                    compatibility_mode = True
+                    artifact_date_basis = "run_date"
+                    legacy_manifest_path = str(LEGACY_MANIFEST_PATH)
+                    source_payload = load_json(LEGACY_MANIFEST_PATH)
+                    data_date = run_date
+                    notebook_title = f"NotebookLM Legacy Report {data_date}"
+                    source_entries = []
+                    fallback_candidate_path = build_legacy_fallback(
+                        source_payload,
+                        ARTIFACT_DIR / f"{date_compact(data_date)}-legacy-source-bundle.md",
                     )
-            else:
-                for entry in source_entries:
-                    if entry.get("value") and entry.get("mode") and entry.get("ok") is not False:
-                        imported = import_target(
-                            notebook_id=notebook_id,
-                            mode=str(entry["mode"]),
-                            value=str(entry["value"]),
+                    fallback_candidate = str(fallback_candidate_path)
+                else:
+                    raise RuntimeError(
+                        "Neither knowledge_pack_latest.json nor ai_builders_digest_sources_latest.json exists"
+                    )
+
+                created = ensure_ok(
+                    run_notebooklm(["notebook", "create", notebook_title, "--json"], timeout=120),
+                    "notebook create",
+                )
+                if not isinstance(created, dict) or not created.get("id"):
+                    raise RuntimeError("Notebook creation did not return a notebook id")
+                notebook_id = str(created["id"])
+
+                if compatibility_mode:
+                    urls_seen = set()
+                    for index, source in enumerate(source_payload.get("selectedSources", []), start=1):
+                        url = str(source.get("url") or "").strip()
+                        if not url or url in urls_seen:
+                            continue
+                        urls_seen.add(url)
+                        imported = import_target(notebook_id=notebook_id, mode="url", value=url)
+                        source_entries.append(
+                            {
+                                "item_id": f"legacy:{index}",
+                                "title": source.get("title") or source.get("originalTitle"),
+                                **imported,
+                            }
                         )
-                        entry.update(imported)
+                else:
+                    for entry in source_entries:
+                        if entry.get("value") and entry.get("mode") and entry.get("ok") is not False:
+                            imported = import_target(
+                                notebook_id=notebook_id,
+                                mode=str(entry["mode"]),
+                                value=str(entry["value"]),
+                            )
+                            entry.update(imported)
 
-            successful_imports = [entry for entry in source_entries if entry.get("ok")]
-            failed_imports = [entry for entry in source_entries if entry.get("ok") is False]
+                successful_imports = [entry for entry in source_entries if entry.get("ok")]
+                failed_imports = [entry for entry in source_entries if entry.get("ok") is False]
 
-            fallback_path = Path(fallback_candidate)
-            if (failed_imports or not successful_imports) and fallback_path.exists():
-                fallback_import = import_target(notebook_id=notebook_id, mode="file", value=str(fallback_path))
-                if fallback_import.get("ok"):
-                    fallback_source_path = str(fallback_path)
-                    source_entries.append(
-                        {
-                            "item_id": "fallback-source",
-                            "title": fallback_path.name,
-                            **fallback_import,
-                        }
-                    )
-                    successful_imports.append(source_entries[-1])
+                fallback_path = Path(fallback_candidate)
+                if (failed_imports or not successful_imports) and fallback_path.exists():
+                    fallback_import = import_target(notebook_id=notebook_id, mode="file", value=str(fallback_path))
+                    if fallback_import.get("ok"):
+                        fallback_source_path = str(fallback_path)
+                        source_entries.append(
+                            {
+                                "item_id": "fallback-source",
+                                "title": fallback_path.name,
+                                **fallback_import,
+                            }
+                        )
+                        successful_imports.append(source_entries[-1])
 
-            if not successful_imports:
-                raise RuntimeError("No NotebookLM sources were imported successfully")
+                if not successful_imports:
+                    raise RuntimeError("No NotebookLM sources were imported successfully")
 
-            report_generation = ensure_ok(
-                run_notebooklm(
-                    [
-                        "generate",
-                        "report",
-                        "-n",
-                        notebook_id,
-                        "--format",
-                        "briefing_doc",
-                        "--wait",
-                        "--json",
+                report_generation = ensure_ok(
+                    run_notebooklm(
+                        [
+                            "generate",
+                            "report",
+                            "-n",
+                            notebook_id,
+                            "--format",
+                            "briefing_doc",
+                            "--wait",
+                            "--json",
+                        ],
+                        timeout=900,
+                    ),
+                    "generate report",
+                )
+                if not isinstance(report_generation, dict) or not report_generation.get("task_id"):
+                    raise RuntimeError("Report generation did not return a report artifact id")
+                report_artifact_id = str(report_generation["task_id"])
+
+                ensure_ok(
+                    run_notebooklm(["artifact", "wait", report_artifact_id, "-n", notebook_id, "--json"], timeout=600),
+                    "artifact wait",
+                )
+
+                report_path = OUTPUT_ROOT / f"notebooklm_report_{date_compact(data_date)}.md"
+                ensure_ok(
+                    run_notebooklm(
+                        [
+                            "download",
+                            "report",
+                            str(report_path),
+                            "-n",
+                            notebook_id,
+                            "--artifact-id",
+                            report_artifact_id,
+                            "--json",
+                        ],
+                        timeout=600,
+                    ),
+                    "download report",
+                )
+                if not report_path.exists() or report_path.stat().st_size == 0:
+                    raise RuntimeError(f"Report markdown was not written: {report_path}")
+
+                metadata = {
+                    "date": data_date,
+                    "report_date": data_date,
+                    "data_date": data_date,
+                    "run_date": run_date,
+                    "timezone": USER_TIMEZONE,
+                    "artifact_date_basis": artifact_date_basis,
+                    "notebook_id": notebook_id,
+                    "notebook_title": notebook_title,
+                    "report_artifact_id": report_artifact_id,
+                    "report_path": str(report_path),
+                    "knowledge_pack_path": str(KNOWLEDGE_PACK_PATH) if KNOWLEDGE_PACK_PATH.exists() else None,
+                    "legacy_source_manifest_path": legacy_manifest_path,
+                    "source_import_summary": {
+                        "total_attempted": len(source_entries),
+                        "successful_count": len([entry for entry in source_entries if entry.get("ok")]),
+                        "failed_count": len([entry for entry in source_entries if entry.get("ok") is False]),
+                        "entries": source_entries,
+                    },
+                    "fallback_source_path": fallback_source_path,
+                    "created_at": created_at.isoformat(timespec="seconds"),
+                    "notes": [
+                        "NotebookLM report generated through the PATH-installed notebooklm CLI.",
+                        f"Compatibility mode used: {compatibility_mode}.",
+                        "Artifact filenames are keyed by data_date.",
                     ],
-                    timeout=900,
-                ),
-                "generate report",
-            )
-            if not isinstance(report_generation, dict) or not report_generation.get("task_id"):
-                raise RuntimeError("Report generation did not return a report artifact id")
-            report_artifact_id = str(report_generation["task_id"])
+                    "preflight": preflight_result,
+                    "lock_path": str(LOCK_PATH),
+                }
 
-            ensure_ok(
-                run_notebooklm(["artifact", "wait", report_artifact_id, "-n", notebook_id, "--json"], timeout=600),
-                "artifact wait",
-            )
+                dated_metadata_path = OUTPUT_ROOT / f"notebooklm_report_run_{date_compact(data_date)}.json"
+                latest_metadata_path = OUTPUT_ROOT / "notebooklm_report_run_latest.json"
+                write_json(dated_metadata_path, metadata)
+                write_json(latest_metadata_path, metadata)
 
-            report_path = OUTPUT_ROOT / f"notebooklm_report_{date_compact(date_value)}.md"
-            ensure_ok(
-                run_notebooklm(
-                    [
-                        "download",
-                        "report",
-                        str(report_path),
-                        "-n",
-                        notebook_id,
-                        "--artifact-id",
-                        report_artifact_id,
-                        "--json",
-                    ],
-                    timeout=600,
-                ),
-                "download report",
-            )
-            if not report_path.exists() or report_path.stat().st_size == 0:
-                raise RuntimeError(f"Report markdown was not written: {report_path}")
-
-            metadata = {
-                "date": date_value,
-                "notebook_id": notebook_id,
-                "notebook_title": notebook_title,
-                "report_artifact_id": report_artifact_id,
-                "report_path": str(report_path),
-                "knowledge_pack_path": str(KNOWLEDGE_PACK_PATH) if KNOWLEDGE_PACK_PATH.exists() else None,
-                "legacy_source_manifest_path": legacy_manifest_path,
-                "source_import_summary": {
-                    "total_attempted": len(source_entries),
-                    "successful_count": len([entry for entry in source_entries if entry.get("ok")]),
-                    "failed_count": len([entry for entry in source_entries if entry.get("ok") is False]),
-                    "entries": source_entries,
-                },
-                "fallback_source_path": fallback_source_path,
-                "created_at": created_at.isoformat(timespec="seconds"),
-                "notes": [
-                    "NotebookLM report generated through the PATH-installed notebooklm CLI.",
-                    f"Compatibility mode used: {compatibility_mode}.",
-                ],
-                "preflight": preflight_result,
-            }
-
-            dated_metadata_path = OUTPUT_ROOT / f"notebooklm_report_run_{date_compact(date_value)}.json"
-            latest_metadata_path = OUTPUT_ROOT / "notebooklm_report_run_latest.json"
-            write_json(dated_metadata_path, metadata)
-            write_json(latest_metadata_path, metadata)
-
-            summary = {
-                "status": "ok",
-                "date": date_value,
-                "compatibility_mode": compatibility_mode,
-                "notebook_id": notebook_id,
-                "report_artifact_id": report_artifact_id,
-                "report_path": str(report_path),
-                "dated_metadata_path": str(dated_metadata_path),
-                "latest_metadata_path": str(latest_metadata_path),
-                "successful_source_count": metadata["source_import_summary"]["successful_count"],
-                "failed_source_count": metadata["source_import_summary"]["failed_count"],
-                "fallback_source_path": fallback_source_path,
-            }
-            timestamp = created_at.strftime("%Y%m%dT%H%M%S%z")
-            write_json(ARTIFACT_DIR / f"{timestamp}-run_summary.json", summary)
-            print(json.dumps(summary, ensure_ascii=False, indent=2))
-            return 0
+                summary = {
+                    "status": "ok",
+                    "report_date": data_date,
+                    "data_date": data_date,
+                    "run_date": run_date,
+                    "timezone": USER_TIMEZONE,
+                    "artifact_date_basis": artifact_date_basis,
+                    "compatibility_mode": compatibility_mode,
+                    "notebook_id": notebook_id,
+                    "report_artifact_id": report_artifact_id,
+                    "report_path": str(report_path),
+                    "dated_metadata_path": str(dated_metadata_path),
+                    "latest_metadata_path": str(latest_metadata_path),
+                    "successful_source_count": metadata["source_import_summary"]["successful_count"],
+                    "failed_source_count": metadata["source_import_summary"]["failed_count"],
+                    "fallback_source_path": fallback_source_path,
+                    "lock_path": str(LOCK_PATH),
+                }
+                timestamp = created_at.strftime("%Y%m%dT%H%M%S%z")
+                write_json(ARTIFACT_DIR / f"{timestamp}-run_summary.json", summary)
+                print(json.dumps(summary, ensure_ascii=False, indent=2))
+                return 0
 
 
         if __name__ == "__main__":

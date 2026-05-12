@@ -9,6 +9,7 @@ from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from preprocess_sources import apply_preprocessing
 
@@ -30,6 +31,7 @@ FOLLOW_BUILDERS_MANIFEST = OUTPUT_ROOT / "ai_builders_digest_sources_latest.json
 BUILDERPULSE_MANIFEST = OUTPUT_ROOT / "builderpulse_opportunity_radar_sources_latest.json"
 ARXIV_MANIFEST = OUTPUT_ROOT / "arxiv_llm_memory_discovery_latest.json"
 SCHEMA_VERSION = "2026-04-19.v2"
+DEFAULT_USER_TIMEZONE = os.environ.get("USER_TIMEZONE", "Asia/Shanghai")
 
 
 def parse_args() -> argparse.Namespace:
@@ -81,7 +83,7 @@ def parse_args() -> argparse.Namespace:
 
 
 def now_local() -> datetime:
-    return datetime.now().astimezone()
+    return datetime.now(ZoneInfo(DEFAULT_USER_TIMEZONE))
 
 
 def load_json(path: Path) -> dict[str, Any] | None:
@@ -470,6 +472,10 @@ def main() -> int:
         "schema_version": SCHEMA_VERSION,
         "pack_id": f"knowledge-pack-{date_str}",
         "date": date_str,
+        "run_date": date_str,
+        "data_date": date_str,
+        "timezone": DEFAULT_USER_TIMEZONE,
+        "artifact_date_basis": "data_date",
         "generated_at": now.isoformat(),
         "item_count": len(items),
         "source_counts": dict(source_counts),
