@@ -1,50 +1,53 @@
-# Task Plan: Acquisition Orchestrator for Information Sources
+# Task Plan: Quality & Reliability Evaluation of Information Processing System
 
 ## Goal
 
-Replicate the useful architecture behind `firecrawl/web-agent` inside the local information processing system, without making Firecrawl a required default dependency.
+Perform a comprehensive quality and reliability evaluation on `muqiao215/information-processing-system`.
+Verify the end-to-end pipeline:
+`source -> recipe -> ledger -> knowledge_pack`
+using a fixed evaluation dataset containing GitHub, arXiv, and Web inputs covering 5 failure/edge cases:
+1. Duplicate URLs
+2. Same content with different links (canonical URL / aliases)
+3. Missing body / empty content
+4. Timeout
+5. Source conflict
 
-The target is an acquisition orchestration layer, not a simple fallback:
-
-`source contract -> acquisition recipe -> tool adapters -> run ledger -> structured extraction -> knowledge_pack`
+Test interruption recovery and cross-day re-runs, checking stable IDs, partial success handling, and citation/provenance traceability. Establish baseline metrics (duplication rate, source coverage, valid item rate, processing time) and fix real issues discovered.
 
 ## Constraints
 
-- Keep `knowledge_pack` as the canonical downstream boundary.
-- Keep no-extra-API-key paths as the default.
-- Treat Firecrawl as an optional adapter, not as the framework.
-- Preserve the existing public webpage/X cascade idea: `r.jina.ai -> defuddle.md -> bot UA -> AMP -> archive.today -> agent-fetch`.
-- Do not add a new active source unless it emits stable source items.
-- Keep NotebookLM-specific behavior downstream of `knowledge_pack`.
-
-## Workstreams
-
-| Workstream | Owner | Status | Write Scope |
-| --- | --- | --- | --- |
-| Planning files | Main session | complete | `task_plan.md`, `findings.md`, `progress.md` |
-| Code skeleton and tests | Background task `7c2f6aa8` + main session | complete | `tools/knowledge_pipeline/acquisition/`, `tests/test_acquisition_orchestrator.py` |
-| Docs and registry | Background task `4533ca6c` + main session | complete | `docs/信息源处理系统/Adapters/`, `docs/信息源处理系统/信息源注册表.md`, README docs references |
-| Integration review | Main session | complete | Review worker outputs, run tests, fix small integration issues |
-
-## Acceptance Criteria
-
-- A local acquisition orchestrator module exists with explicit concepts for tasks, recipes, adapters, attempts, ledgers, and promoted items.
-- Default operation can run without `FIRECRAWL_API_KEY`.
-- Firecrawl/Web Agent is documented and modeled only as an optional adapter.
-- The orchestrator can emit a JSON ledger and candidate item data that can later be promoted into `knowledge_pack`.
-- Tests cover recipe selection, default cascade ordering, optional Firecrawl disabling, and ledger shape.
-- Docs explain why this is an adapter/orchestration layer rather than an active source.
+- Do NOT add new collection sources.
+- Do NOT create new scheduled tasks/crons.
+- Do NOT send digests/summaries outbound.
+- Adhere to SpecMesh and planning-with-files conventions.
 
 ## Phases
 
-1. Create persistent plan files. Status: complete.
-2. Launch parallel background tasks with disjoint write scopes. Status: complete.
-3. Review and integrate task outputs. Status: complete.
-4. Run tests. Status: complete.
-5. Commit locally if changes are coherent. Status: pending.
+| Phase | Description | Status | Next Step |
+| --- | --- | --- | --- |
+| 1 | Benchmark Dataset Design & Exploration | complete | Completed fixed 10-item dataset |
+| 2 | Pipeline Audit & Failure Mode Verification | complete | Completed failure mode verification |
+| 3 | Baseline Metrics Measurement | complete | Baseline computed |
+| 4 | Root Cause Fixes & Pipeline Hardening | complete | Deduplication, recipes, validation, and ledger bridge fixed |
+| 5 | Post-fix Verification & Baseline Documentation | complete | Verified 35/35 pytest passes, evaluation script passes |
+
+## Next Step
+
+Present evaluation report, baseline metrics, and fixed architectural issues to the user.
+
+## Decisions Made
+
+| Decision | Rationale | Impact |
+| --- | --- | --- |
+| Use isolated test fixtures under `tests/fixtures/` and dedicated test suites under `tests/` | Allows deterministic, reproducible evaluation without mutating production workspace | Clean automated regression testing and clear baseline measurement |
+| Integrate acquisition ledgers directly into `build_knowledge_pack.py` | Complete the `source -> recipe -> ledger -> knowledge_pack` pipeline contract documented in architecture docs | Fulfills end-to-end integration without adding new collection sources |
+| Canonicalize URLs and unify item deduplication across source boundaries | `dedupe_items` previously keyed on `source_id::url`, failing cross-source deduplication and alias merging | Eliminates 100% of redundant inputs and resolves source conflict bugs |
+| Implement content validation in `AcquisitionAdapter` | Previously empty or whitespace-only bodies were marked as successful and promoted | Prevents corrupted / empty items from entering knowledge packs |
+| Add checkpoint-based resumption in `Orchestrator.run_batch` | Enables interruption recovery without re-fetching or duplicating items | Increases rerun efficiency with zero duplicate effort |
 
 ## Errors Encountered
 
 | Error | Attempt | Resolution |
 | --- | --- | --- |
-| `tools/task_tools/CLAUDE/GEMINI/AGENTS.md` path missing | Tried to read placeholder path from workspace prompt | Use actual `tools/task_tools/AGENTS.md` / `create_task.py` scripts |
+| Missing `canonicalize_url` import during initial test run | 1 | Implemented `canonicalize_url` in `models.py` and exported cleanly |
+| `AcquisitionAdapter` promoting empty bodies | 1 | Added `is_valid_content` filter in `adapters.py` to reject whitespace/empty/error text |

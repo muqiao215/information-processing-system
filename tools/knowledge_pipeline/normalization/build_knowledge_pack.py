@@ -5,16 +5,27 @@ import argparse
 import hashlib
 import json
 import os
+import sys
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
-from preprocess_sources import apply_preprocessing
-
-
 REPO_ROOT = Path(__file__).resolve().parents[3]
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+NORMALIZATION_DIR = Path(__file__).resolve().parent
+if str(NORMALIZATION_DIR) not in sys.path:
+    sys.path.insert(0, str(NORMALIZATION_DIR))
+
+from preprocess_sources import apply_preprocessing
+from tools.knowledge_pipeline.acquisition.models import (
+    RunLedger,
+    canonicalize_url,
+    stable_item_id as acq_stable_item_id,
+)
 
 
 def resolve_workspace_root(repo_root: Path) -> Path:
@@ -55,6 +66,12 @@ def parse_args() -> argparse.Namespace:
         type=Path,
         default=ARXIV_MANIFEST,
         help="Path to the arXiv LLM memory discovery manifest.",
+    )
+    parser.add_argument(
+        "--ledgers",
+        type=Path,
+        default=None,
+        help="Path to an acquisition ledger JSON file or directory of ledger JSONs.",
     )
     parser.add_argument(
         "--output-root",
@@ -107,10 +124,20 @@ def clip_text(text: str, limit: int) -> str:
     return text[: limit - 1].rstrip() + "…"
 
 
-def stable_item_id(source_id: str, title: str, url: str | None) -> str:
-    seed = f"{source_id}\n{title.strip()}\n{(url or '').strip()}"
+def stable_item_id(
+    source_id: str,
+    title: str,
+    url: str | None,
+    canonical_url: str | None = None,
+) -> str:
+    effective_url = canonical_url or canonicalize_url(url)
+    if effective_url:
+        seed = f"url:{effective_url}"
+    else:
+        seed = f"title:{title.strip().lower()}"
     digest = hashlib.sha256(seed.encode("utf-8")).hexdigest()[:16]
-    return f"{source_id}:{digest}"
+    prefix = source_id if source_id else "item"
+    return f"{prefix}:{digest}"
 
 
 def render_item_fallback(item: dict[str, Any]) -> str:
@@ -120,10 +147,10 @@ def render_item_fallback(item: dict[str, Any]) -> str:
     lines.append(f"- source_of_truth: {item['source_of_truth']}")
     if item.get("url"):
         lines.append(f"- url: {item['url']}")
-    if item["freshness"].get("published_at"):
+    if item.get("freshness", {}).get("published_at"):
         lines.append(f"- published_at: {item['freshness']['published_at']}")
-    lines.append(f"- selected_reason: {item['selected_reason']}")
-    if item["tags"]:
+    lines.append(f"- selected_reason: {item.get('selected_reason', '')}")
+    if item.get("tags"):
         lines.append(f"- tags: {', '.join(item['tags'])}")
     if item.get("local_text_path"):
         lines.append(f"- local_text_path: {item['local_text_path']}")
@@ -132,8 +159,22 @@ def render_item_fallback(item: dict[str, Any]) -> str:
         lines.append(f"- preprocess_status: {preprocess.get('status')}")
         if preprocess.get("method"):
             lines.append(f"- preprocess_method: {preprocess.get('method')}")
-    lines.extend(["", "### Summary", "", item["summary"] or "(empty)", ""])
-    if item["raw_text"]:
+
+    # Citations & Provenance traceability
+    meta = item.get("metadata", {})
+    if meta.get("observed_sources") and len(meta["observed_sources"]) > 1:
+        lines.append(f"- observed_sources: {', '.join(meta['observed_sources'])}")
+    if meta.get("aliases"):
+        lines.append(f"- aliases: {', '.join(meta['aliases'])}")
+    if meta.get("acquisition_recipe"):
+        lines.append(f"- acquisition_recipe: {meta['acquisition_recipe']}")
+    if meta.get("acquisition_adapter"):
+        lines.append(f"- acquisition_adapter: {meta['acquisition_adapter']}")
+    if meta.get("run_id"):
+        lines.append(f"- run_id: {meta['run_id']}")
+
+    lines.extend(["", "### Summary", "", item.get("summary") or "(empty)", ""])
+    if item.get("raw_text"):
         lines.extend(["### Raw Text", "", item["raw_text"], ""])
     return "\n".join(lines).strip()
 
@@ -143,6 +184,7 @@ def build_follow_builders_items(manifest: dict[str, Any]) -> list[dict[str, Any]
     generated_at = manifest.get("generatedAt")
     for source in manifest.get("selectedSources", []):
         url = source.get("url")
+        canon_url = canonicalize_url(url)
         title = clean_text(source.get("title") or source.get("originalTitle") or url or "Untitled")
         summary = clean_text(source.get("summary"))
         raw_text = clean_text(source.get("originalText"))
@@ -157,14 +199,26 @@ def build_follow_builders_items(manifest: dict[str, Any]) -> list[dict[str, Any]
             "sections": sections,
             "publishedAt": source.get("publishedAt"),
             "originalTitle": source.get("originalTitle"),
+            "canonical_url": canon_url,
+            "observed_sources": ["follow-builders"],
+            "aliases": [url] if url and url != canon_url else [],
+            "citations": [
+                {
+                    "source_id": "follow-builders",
+                    "title": title,
+                    "url": url,
+                    "canonical_url": canon_url,
+                    "published_at": source.get("publishedAt"),
+                }
+            ],
         }
         item = {
-            "item_id": stable_item_id("follow-builders", title, url),
+            "item_id": stable_item_id("follow-builders", title, url, canonical_url=canon_url),
             "source_id": "follow-builders",
             "source_type": clean_text(source.get("type") or "web_item"),
-            "source_of_truth": url or title,
+            "source_of_truth": canon_url or url or title,
             "access_path": "cron_tasks/ai-builders-digest-5briefs/scripts/build_digest_outputs.py",
-            "url": url,
+            "url": canon_url or url,
             "title": title,
             "summary": summary or clip_text(raw_text, 320),
             "raw_text": raw_text or summary,
@@ -175,12 +229,22 @@ def build_follow_builders_items(manifest: dict[str, Any]) -> list[dict[str, Any]
                 "generated_at": generated_at,
             },
             "content_type": "url",
-            "import_targets": [{"kind": "url", "value": url}] if url else [],
+            "import_targets": [{"kind": "url", "value": canon_url or url}] if (canon_url or url) else [],
             "import_policy": {
                 "preferred": "url",
                 "fallback": "markdown",
             },
             "fallback_content": "",
+            "preprocess": {
+                "status": "pending",
+                "method": None,
+                "local_text_path": None,
+                "source_url": canon_url or url,
+                "content_length": len(raw_text or summary or ""),
+                "attempted_methods": [],
+                "notes": ["manifest_loaded"],
+                "generated_at": generated_at,
+            },
             "metadata": metadata,
         }
         item["fallback_content"] = render_item_fallback(item)
@@ -191,6 +255,7 @@ def build_follow_builders_items(manifest: dict[str, Any]) -> list[dict[str, Any]
 def build_builderpulse_items(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     report = manifest.get("report", {})
     report_url = report.get("report_url")
+    canon_report_url = canonicalize_url(report_url)
     report_date = report.get("date")
     report_generated_at = report.get("generated_at")
     items: list[dict[str, Any]] = []
@@ -209,12 +274,12 @@ def build_builderpulse_items(manifest: dict[str, Any]) -> list[dict[str, Any]]:
             if section_name:
                 tags.append(section_name)
             item = {
-                "item_id": stable_item_id("builderpulse-opportunity-radar", title, report_url or title),
+                "item_id": stable_item_id("builderpulse-opportunity-radar", title, report_url or title, canonical_url=canon_report_url),
                 "source_id": "builderpulse-opportunity-radar",
                 "source_type": "repo_archive_markdown",
-                "source_of_truth": report_url or f"BuilderPulse report {report_date}",
+                "source_of_truth": canon_report_url or report_url or f"BuilderPulse report {report_date}",
                 "access_path": "cron_tasks/daily-builderpulse-opportunity-radar/scripts/build_builderpulse_radar.py",
-                "url": report_url,
+                "url": canon_report_url or report_url,
                 "title": title,
                 "summary": summary,
                 "raw_text": raw_text,
@@ -225,12 +290,22 @@ def build_builderpulse_items(manifest: dict[str, Any]) -> list[dict[str, Any]]:
                     "generated_at": report_generated_at or manifest.get("generated_at"),
                 },
                 "content_type": "repo_archive_markdown",
-                "import_targets": [{"kind": "url", "value": report_url}] if report_url else [],
+                "import_targets": [{"kind": "url", "value": canon_report_url or report_url}] if (canon_report_url or report_url) else [],
                 "import_policy": {
                     "preferred": "url",
                     "fallback": "markdown",
                 },
                 "fallback_content": "",
+                "preprocess": {
+                    "status": "pending",
+                    "method": None,
+                    "local_text_path": None,
+                    "source_url": canon_report_url or report_url,
+                    "content_length": len(raw_text),
+                    "attempted_methods": [],
+                    "notes": ["manifest_loaded"],
+                    "generated_at": report_generated_at or manifest.get("generated_at"),
+                },
                 "metadata": {
                     "section": section_name,
                     "signal": signal,
@@ -239,6 +314,18 @@ def build_builderpulse_items(manifest: dict[str, Any]) -> list[dict[str, Any]]:
                     "report_title": report.get("title"),
                     "report_date": report_date,
                     "local_path": report.get("local_path"),
+                    "canonical_url": canon_report_url,
+                    "observed_sources": ["builderpulse-opportunity-radar"],
+                    "aliases": [report_url] if report_url and report_url != canon_report_url else [],
+                    "citations": [
+                        {
+                            "source_id": "builderpulse-opportunity-radar",
+                            "title": title,
+                            "url": report_url,
+                            "canonical_url": canon_report_url,
+                            "published_at": report_date,
+                        }
+                    ],
                 },
             }
             item["fallback_content"] = render_item_fallback(item)
@@ -253,22 +340,25 @@ def build_arxiv_items(manifest: dict[str, Any]) -> list[dict[str, Any]]:
     title = clean_text(selected.get("title") or "arXiv memory paper")
     abs_url = selected.get("abs_url")
     pdf_url = selected.get("pdf_url")
+    canon_url = canonicalize_url(abs_url or pdf_url)
     reasons = [clean_text(reason) for reason in selected.get("reasons", []) if clean_text(reason)]
     summary = clean_text(selected.get("summary"))
     tags = ["arxiv", "llm-memory"]
     tags.extend(clean_text(category) for category in selected.get("categories", []) if clean_text(category))
     import_targets = []
-    if pdf_url:
+    if canon_url:
+        import_targets.append({"kind": "url", "value": canon_url})
+    if pdf_url and pdf_url != canon_url:
         import_targets.append({"kind": "url", "value": pdf_url})
-    if abs_url:
+    if abs_url and abs_url != canon_url:
         import_targets.append({"kind": "url", "value": abs_url})
     item = {
-        "item_id": stable_item_id("arxiv-llm-memory-discovery", title, abs_url or pdf_url),
+        "item_id": stable_item_id("arxiv-llm-memory-discovery", title, abs_url or pdf_url, canonical_url=canon_url),
         "source_id": "arxiv-llm-memory-discovery",
         "source_type": "arxiv_paper",
-        "source_of_truth": abs_url or pdf_url or title,
+        "source_of_truth": canon_url or abs_url or pdf_url or title,
         "access_path": "skills/arxiv-llm-memory-discovery/scripts/discover_llm_memory_paper.py",
-        "url": abs_url or pdf_url,
+        "url": canon_url or abs_url or pdf_url,
         "title": title,
         "summary": summary,
         "raw_text": summary,
@@ -285,6 +375,16 @@ def build_arxiv_items(manifest: dict[str, Any]) -> list[dict[str, Any]]:
             "fallback": "markdown",
         },
         "fallback_content": "",
+        "preprocess": {
+            "status": "pending",
+            "method": None,
+            "local_text_path": None,
+            "source_url": canon_url or abs_url or pdf_url,
+            "content_length": len(summary or ""),
+            "attempted_methods": [],
+            "notes": ["manifest_loaded"],
+            "generated_at": manifest.get("generated_at"),
+        },
         "metadata": {
             "arxiv_id": selected.get("arxiv_id"),
             "authors": selected.get("authors", []),
@@ -292,27 +392,202 @@ def build_arxiv_items(manifest: dict[str, Any]) -> list[dict[str, Any]]:
             "score": selected.get("score"),
             "reasons": reasons,
             "penalties": selected.get("penalties", []),
+            "canonical_url": canon_url,
+            "observed_sources": ["arxiv-llm-memory-discovery"],
+            "aliases": [u for u in [abs_url, pdf_url] if u and u != canon_url],
+            "citations": [
+                {
+                    "source_id": "arxiv-llm-memory-discovery",
+                    "title": title,
+                    "url": abs_url or pdf_url,
+                    "canonical_url": canon_url,
+                    "published_at": selected.get("published"),
+                }
+            ],
         },
     }
     item["fallback_content"] = render_item_fallback(item)
     return [item]
 
 
+def build_acquisition_items(ledgers: list[dict[str, Any] | RunLedger]) -> list[dict[str, Any]]:
+    """Convert acquisition run ledgers and promoted items into knowledge_pack candidates."""
+    items: list[dict[str, Any]] = []
+    for ledger_entry in ledgers:
+        if isinstance(ledger_entry, dict):
+            ledger_data = ledger_entry
+            promoted_list = ledger_data.get("promoted_items", [])
+            recipe_id = ledger_data.get("recipe_id", "unknown_recipe")
+            run_id = ledger_data.get("run_id", "unknown_run")
+            task_data = ledger_data.get("task", {})
+            generated_at = ledger_data.get("generated_at")
+        else:
+            ledger_data = ledger_entry.to_dict()
+            promoted_list = [p.to_dict() for p in ledger_entry.promoted_items]
+            recipe_id = ledger_entry.recipe_id
+            run_id = ledger_entry.run_id
+            task_data = ledger_entry.task.to_dict()
+            generated_at = ledger_entry.generated_at
+
+        for promoted in promoted_list:
+            candidate = promoted.get("knowledge_pack_candidate") or promoted
+            url = candidate.get("url")
+            canon_url = candidate.get("canonical_url") or canonicalize_url(url)
+            title = clean_text(candidate.get("title") or url or "Acquired item")
+            raw_text = clean_text(candidate.get("raw_text") or candidate.get("content") or "")
+            summary = clean_text(candidate.get("summary") or clip_text(raw_text, 320))
+            source_type = clean_text(candidate.get("source_type") or "webpage")
+            source_id = (
+                task_data.get("source_id")
+                or candidate.get("metadata", {}).get("source_id")
+                or "acquisition-orchestrator"
+            )
+            adapter = candidate.get("metadata", {}).get("acquisition_adapter") or promoted.get("adapter", "unknown")
+
+            item_id = stable_item_id(source_type, title, url, canonical_url=canon_url)
+            tags = ["acquisition", source_type]
+            if canon_url:
+                tags.append(clean_text(urlparse(canon_url).netloc.removeprefix("www.")))
+
+            aliases = [url] if url and url != canon_url else []
+            metadata = {
+                **candidate.get("metadata", {}),
+                "acquisition_recipe": recipe_id,
+                "acquisition_adapter": adapter,
+                "run_id": run_id,
+                "canonical_url": canon_url,
+                "observed_sources": [source_id],
+                "aliases": aliases,
+                "citations": [
+                    {
+                        "source_id": source_id,
+                        "title": title,
+                        "url": url,
+                        "canonical_url": canon_url,
+                        "run_id": run_id,
+                    }
+                ],
+            }
+
+            item = {
+                "item_id": item_id,
+                "source_id": source_id,
+                "source_type": source_type,
+                "source_of_truth": canon_url or url or title,
+                "access_path": "tools/knowledge_pipeline/acquisition/orchestrator.py",
+                "url": canon_url or url,
+                "title": title,
+                "summary": summary,
+                "raw_text": raw_text,
+                "selected_reason": f"Acquired via recipe: {recipe_id} using adapter: {adapter}",
+                "tags": sorted({tag for tag in tags if tag}),
+                "freshness": {
+                    "published_at": None,
+                    "generated_at": generated_at,
+                },
+                "content_type": "markdown",
+                "import_targets": [{"kind": "url", "value": canon_url or url}] if (canon_url or url) else [],
+                "import_policy": {
+                    "preferred": "local_markdown",
+                    "fallback": "url_then_pack_markdown",
+                },
+                "fallback_content": "",
+                "preprocess": {
+                    "status": "ready",
+                    "method": "acquisition_adapter",
+                    "local_text_path": None,
+                    "source_url": canon_url or url,
+                    "content_length": len(raw_text),
+                    "attempted_methods": [{"method": adapter, "ok": True, "detail": "acquired"}],
+                    "notes": ["promoted_from_acquisition_ledger"],
+                    "generated_at": generated_at,
+                },
+                "metadata": metadata,
+            }
+            item["fallback_content"] = render_item_fallback(item)
+            items.append(item)
+    return items
+
+
 def dedupe_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Deduplicate items across sources using canonical URLs or normalized titles."""
     deduped: dict[str, dict[str, Any]] = {}
     for item in items:
-        key = f"{item['source_id']}::{item.get('url') or item['title']}"
+        url = item.get("url")
+        canon_url = canonicalize_url(url)
+        if canon_url:
+            key = f"url::{canon_url}"
+        elif item.get("title"):
+            key = f"title::{clean_text(item['title']).lower()}"
+        else:
+            key = f"id::{item.get('item_id')}"
+
         if key not in deduped:
+            meta = item.setdefault("metadata", {})
+            meta.setdefault("observed_sources", [item["source_id"]])
+            meta.setdefault("aliases", [])
+            meta.setdefault("citations", [
+                {
+                    "source_id": item["source_id"],
+                    "title": item["title"],
+                    "url": url,
+                    "canonical_url": canon_url,
+                    "published_at": item.get("freshness", {}).get("published_at"),
+                }
+            ])
             deduped[key] = item
             continue
+
         existing = deduped[key]
-        existing["tags"] = sorted(set(existing["tags"]) | set(item["tags"]))
-        if item["selected_reason"] and item["selected_reason"] not in existing["selected_reason"]:
-            existing["selected_reason"] += " | " + item["selected_reason"]
-        if item["raw_text"] and item["raw_text"] not in existing["raw_text"]:
-            existing["raw_text"] = clean_text(existing["raw_text"] + "\n\n" + item["raw_text"])
-        if item["summary"] and len(item["summary"]) > len(existing["summary"]):
+        existing_meta = existing.setdefault("metadata", {})
+        item_meta = item.get("metadata", {})
+
+        # Merge tags
+        existing["tags"] = sorted(set(existing.get("tags", [])) | set(item.get("tags", [])))
+
+        # Merge selected reasons
+        if item.get("selected_reason") and item["selected_reason"] not in existing.get("selected_reason", ""):
+            existing["selected_reason"] = f"{existing.get('selected_reason', '')} | {item['selected_reason']}".strip(" |")
+
+        # Merge raw text
+        if item.get("raw_text") and item["raw_text"] not in existing.get("raw_text", ""):
+            existing["raw_text"] = clean_text(existing.get("raw_text", "") + "\n\n" + item["raw_text"])
+
+        # Pick longer / more informative summary
+        if item.get("summary") and len(item["summary"]) > len(existing.get("summary", "")):
             existing["summary"] = item["summary"]
+
+        # Track observed sources
+        observed = existing_meta.setdefault("observed_sources", [existing["source_id"]])
+        if item["source_id"] not in observed:
+            observed.append(item["source_id"])
+
+        # Track aliases
+        aliases = existing_meta.setdefault("aliases", [])
+        if url and url != existing.get("url") and url not in aliases:
+            aliases.append(url)
+        for a in item_meta.get("aliases", []):
+            if a != existing.get("url") and a not in aliases:
+                aliases.append(a)
+
+        # Track citations
+        citations = existing_meta.setdefault("citations", [])
+        citation_entry = {
+            "source_id": item["source_id"],
+            "title": item["title"],
+            "url": url,
+            "canonical_url": canon_url,
+            "published_at": item.get("freshness", {}).get("published_at"),
+        }
+        if citation_entry not in citations:
+            citations.append(citation_entry)
+
+        # Merge provenance
+        if "provenance" in item_meta:
+            prov_list = existing_meta.setdefault("provenance", [])
+            if item_meta["provenance"] not in prov_list:
+                prov_list.append(item_meta["provenance"])
+
         existing["fallback_content"] = render_item_fallback(existing)
     return list(deduped.values())
 
@@ -372,8 +647,10 @@ def ensure_pack_shape(pack: dict[str, Any]) -> None:
                 raise ValueError(f"knowledge_pack item #{index} missing key: {key}")
 
 
-def manifest_status(path: Path, payload: dict[str, Any] | None, notes: list[str]) -> dict[str, Any]:
-    entry: dict[str, Any] = {"path": str(path), "exists": path.exists(), "notes": notes}
+def manifest_status(path: Path | str, payload: dict[str, Any] | None, notes: list[str]) -> dict[str, Any]:
+    p = Path(path) if isinstance(path, (str, Path)) else None
+    exists = p.exists() if p else True
+    entry: dict[str, Any] = {"path": str(path), "exists": exists, "notes": notes}
     if not payload:
         return entry
     if "status" in payload:
@@ -386,6 +663,8 @@ def manifest_status(path: Path, payload: dict[str, Any] | None, notes: list[str]
         entry["item_count"] = sum(len(section.get("items", [])) for section in payload.get("selected_sections", []))
     elif payload.get("selected"):
         entry["item_count"] = 1
+    elif "item_count" in payload:
+        entry["item_count"] = payload["item_count"]
     return entry
 
 
@@ -413,6 +692,7 @@ def main() -> int:
     fb_notes: list[str] = []
     bp_notes: list[str] = []
     ax_notes: list[str] = []
+    ledger_notes: list[str] = []
     items: list[dict[str, Any]] = []
 
     if follow_payload:
@@ -432,6 +712,22 @@ def main() -> int:
             ax_notes.append("arxiv manifest present but no selected paper")
     else:
         ax_notes.append("arxiv manifest missing")
+
+    loaded_ledgers: list[dict[str, Any]] = []
+    if args.ledgers:
+        if args.ledgers.is_file():
+            payload = load_json(args.ledgers)
+            if payload:
+                loaded_ledgers.append(payload)
+        elif args.ledgers.is_dir():
+            for f in sorted(args.ledgers.glob("*.json")):
+                payload = load_json(f)
+                if payload:
+                    loaded_ledgers.append(payload)
+        if loaded_ledgers:
+            items.extend(build_acquisition_items(loaded_ledgers))
+        else:
+            ledger_notes.append(f"No valid ledgers found in {args.ledgers}")
 
     items = dedupe_items(items)
     if not items:
@@ -468,6 +764,18 @@ def main() -> int:
         item["fallback_content"] = render_item_fallback(item)
 
     source_counts = Counter(item["source_id"] for item in items)
+    input_manifests = {
+        "follow-builders": manifest_status(args.follow_builders, follow_payload, fb_notes),
+        "builderpulse-opportunity-radar": manifest_status(args.builderpulse, builderpulse_payload, bp_notes),
+        "arxiv-llm-memory-discovery": manifest_status(args.arxiv, arxiv_payload, ax_notes),
+    }
+    if args.ledgers:
+        input_manifests["acquisition-orchestrator"] = manifest_status(
+            args.ledgers,
+            {"status": "loaded", "item_count": len(loaded_ledgers)},
+            ledger_notes,
+        )
+
     pack: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "pack_id": f"knowledge-pack-{date_str}",
@@ -479,11 +787,7 @@ def main() -> int:
         "generated_at": now.isoformat(),
         "item_count": len(items),
         "source_counts": dict(source_counts),
-        "input_manifests": {
-            "follow-builders": manifest_status(args.follow_builders, follow_payload, fb_notes),
-            "builderpulse-opportunity-radar": manifest_status(args.builderpulse, builderpulse_payload, bp_notes),
-            "arxiv-llm-memory-discovery": manifest_status(args.arxiv, arxiv_payload, ax_notes),
-        },
+        "input_manifests": input_manifests,
         "items": items,
         "preprocessing_summary": preprocess_summary,
         "fallback_markdown_path": None,

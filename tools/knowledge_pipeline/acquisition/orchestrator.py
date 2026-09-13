@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import json
 import os
+import re
+from pathlib import Path
 
 from .adapters import FetchFn
 from .models import AcquisitionTask, PromotedItem, RunLedger, SourceCandidate, stable_digest
@@ -71,3 +74,41 @@ class Orchestrator:
                 "effective_steps": recipe.step_names_without_disabled(self.env),
             },
         )
+
+    def run_batch(
+        self,
+        tasks: list[AcquisitionTask],
+        *,
+        ledger_dir: Path | None = None,
+        resume: bool = True,
+    ) -> list[RunLedger]:
+        """Execute a batch of acquisition tasks with interruption resumption."""
+        ledgers: list[RunLedger] = []
+        if ledger_dir is not None:
+            ledger_dir = Path(ledger_dir)
+            ledger_dir.mkdir(parents=True, exist_ok=True)
+
+        for task in tasks:
+            ledger_file = None
+            if ledger_dir is not None:
+                safe_id = re.sub(r"[^a-zA-Z0-9._-]+", "_", task.task_id)
+                ledger_file = ledger_dir / f"{safe_id}.json"
+
+            if resume and ledger_file is not None and ledger_file.exists():
+                try:
+                    payload = json.loads(ledger_file.read_text(encoding="utf-8"))
+                    cached_ledger = RunLedger.from_dict(payload)
+                    if cached_ledger.status == "promoted":
+                        ledgers.append(cached_ledger)
+                        continue
+                except Exception:
+                    pass
+
+            ledger = self.run(task)
+            ledgers.append(ledger)
+
+            if ledger_file is not None:
+                payload_str = json.dumps(ledger.to_dict(), ensure_ascii=False, indent=2)
+                ledger_file.write_text(payload_str + "\n", encoding="utf-8")
+
+        return ledgers

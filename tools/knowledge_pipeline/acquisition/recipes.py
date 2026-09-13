@@ -72,6 +72,30 @@ def default_registry() -> Registry:
             ),
         ),
         AcquisitionRecipe(
+            recipe_id="raw_github_default",
+            description="Specialized recipe for GitHub README and repository text files.",
+            source_types=("raw_github_text", "github", "github_repo"),
+            priority=15,
+            steps=(
+                RecipeStep("direct_raw"),
+                RecipeStep("jina_reader"),
+                RecipeStep("defuddle"),
+                RecipeStep("agent_fetch"),
+            ),
+        ),
+        AcquisitionRecipe(
+            recipe_id="arxiv_paper_default",
+            description="Specialized recipe for arXiv papers with abstract and PDF cascade.",
+            source_types=("arxiv_paper", "arxiv", "paper"),
+            priority=15,
+            steps=(
+                RecipeStep("arxiv_abstract"),
+                RecipeStep("jina_reader"),
+                RecipeStep("defuddle"),
+                RecipeStep("agent_fetch"),
+            ),
+        ),
+        AcquisitionRecipe(
             recipe_id="generic_default",
             description="Fallback recipe for URL-like tasks that still emits deterministic ledger entries.",
             priority=100,
