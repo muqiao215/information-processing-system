@@ -26,6 +26,7 @@ from tools.knowledge_pipeline.acquisition.models import (
     canonicalize_url,
     stable_item_id as acq_stable_item_id,
 )
+from tools.knowledge_pipeline.fs_utils import atomic_write_text
 
 
 def resolve_workspace_root(repo_root: Path) -> Path:
@@ -166,6 +167,10 @@ def render_item_fallback(item: dict[str, Any]) -> str:
         lines.append(f"- observed_sources: {', '.join(meta['observed_sources'])}")
     if meta.get("aliases"):
         lines.append(f"- aliases: {', '.join(meta['aliases'])}")
+    if meta.get("content_conflict"):
+        lines.append("- content_conflict: true (sources diverged; all claims kept)")
+    if meta.get("merged_same_content"):
+        lines.append("- merged_same_content: true")
     if meta.get("acquisition_recipe"):
         lines.append(f"- acquisition_recipe: {meta['acquisition_recipe']}")
     if meta.get("acquisition_adapter"):
@@ -510,7 +515,19 @@ def build_acquisition_items(ledgers: list[dict[str, Any] | RunLedger]) -> list[d
 
 
 def dedupe_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Deduplicate items across sources using canonical URLs or normalized titles."""
+    """Deduplicate items across sources.
+
+    Pass 1 keys on canonical URL (fallback: normalized title). When two
+    sources report the same canonical URL with diverging raw_text, both
+    texts are kept and `content_conflict` is raised so downstream consumers
+    see the contradiction.
+
+    Pass 2 merges syndication/mirror duplicates: identical normalized title
+    AND identical raw_text at different canonical URLs collapse into the
+    first occurrence, keeping alias + citation + observed-source provenance.
+    Items that merely share a title but differ in body never merge in
+    pass 2 (same-title-different-content stays distinct).
+    """
     deduped: dict[str, dict[str, Any]] = {}
     for item in items:
         url = item.get("url")
@@ -549,9 +566,10 @@ def dedupe_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
         if item.get("selected_reason") and item["selected_reason"] not in existing.get("selected_reason", ""):
             existing["selected_reason"] = f"{existing.get('selected_reason', '')} | {item['selected_reason']}".strip(" |")
 
-        # Merge raw text
+        # Merge raw text; flag the contradiction when two sources disagree
         if item.get("raw_text") and item["raw_text"] not in existing.get("raw_text", ""):
             existing["raw_text"] = clean_text(existing.get("raw_text", "") + "\n\n" + item["raw_text"])
+            existing_meta["content_conflict"] = True
 
         # Pick longer / more informative summary
         if item.get("summary") and len(item["summary"]) > len(existing.get("summary", "")):
@@ -589,7 +607,66 @@ def dedupe_items(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
                 prov_list.append(item_meta["provenance"])
 
         existing["fallback_content"] = render_item_fallback(existing)
-    return list(deduped.values())
+    return merge_identical_content(list(deduped.values()))
+
+
+def content_fingerprint(item: dict[str, Any]) -> tuple[str, str] | None:
+    """Fingerprint used by pass 2: normalized title + sha256 of raw_text."""
+    raw_text = clean_text(item.get("raw_text") or "")
+    title = clean_text(item.get("title") or "").casefold()
+    if not raw_text or not title:
+        return None
+    return (title, hashlib.sha256(raw_text.encode("utf-8")).hexdigest())
+
+
+def merge_identical_content(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Pass 2 dedupe: identical title + identical body at different canonical
+    URLs (syndicated copies, mirrors) merge into the first occurrence. Input
+    order decides the survivor, which keeps repeat runs deterministic."""
+    fingerprint_owner: dict[tuple[str, str], dict[str, Any]] = {}
+    merged: list[dict[str, Any]] = []
+    for item in items:
+        fingerprint = content_fingerprint(item)
+        owner = fingerprint_owner.get(fingerprint) if fingerprint is not None else None
+        if owner is None:
+            if fingerprint is not None:
+                fingerprint_owner[fingerprint] = item
+            merged.append(item)
+            continue
+
+        owner_meta = owner.setdefault("metadata", {})
+        item_meta = item.get("metadata", {})
+        owner["tags"] = sorted(set(owner.get("tags", [])) | set(item.get("tags", [])))
+        if item.get("summary") and len(item["summary"]) > len(owner.get("summary", "")):
+            owner["summary"] = item["summary"]
+        if item.get("selected_reason") and item["selected_reason"] not in owner.get("selected_reason", ""):
+            owner["selected_reason"] = f"{owner.get('selected_reason', '')} | {item['selected_reason']}".strip(" |")
+
+        observed = owner_meta.setdefault("observed_sources", [owner["source_id"]])
+        if item["source_id"] not in observed:
+            observed.append(item["source_id"])
+
+        item_url = item.get("url")
+        item_canon = canonicalize_url(item_url)
+        aliases = owner_meta.setdefault("aliases", [])
+        for alias in [item_url, item_canon, *item_meta.get("aliases", [])]:
+            if alias and alias != owner.get("url") and alias not in aliases:
+                aliases.append(alias)
+
+        citations = owner_meta.setdefault("citations", [])
+        citation_entry = {
+            "source_id": item["source_id"],
+            "title": item["title"],
+            "url": item_url,
+            "canonical_url": item_canon,
+            "published_at": item.get("freshness", {}).get("published_at"),
+        }
+        if citation_entry not in citations:
+            citations.append(citation_entry)
+
+        owner_meta["merged_same_content"] = True
+        owner["fallback_content"] = render_item_fallback(owner)
+    return merged
 
 
 def build_fallback_markdown(pack: dict[str, Any]) -> str:
@@ -668,14 +745,30 @@ def manifest_status(path: Path | str, payload: dict[str, Any] | None, notes: lis
     return entry
 
 
+def load_ledger_payloads(paths: list[Path]) -> tuple[list[dict[str, Any]], list[str]]:
+    """Load ledger JSONs, skipping corrupt/truncated files instead of failing
+    the whole pack build. Returns (payloads, skipped descriptions)."""
+    payloads: list[dict[str, Any]] = []
+    skipped: list[str] = []
+    for path in paths:
+        try:
+            payload = json.loads(path.read_text(encoding="utf-8"))
+        except (json.JSONDecodeError, OSError, UnicodeDecodeError) as exc:
+            skipped.append(f"{path.name}: {type(exc).__name__}")
+            continue
+        if isinstance(payload, dict):
+            payloads.append(payload)
+        else:
+            skipped.append(f"{path.name}: not_a_json_object")
+    return payloads, skipped
+
+
 def write_json(path: Path, payload: dict[str, Any]) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    atomic_write_text(path, json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
 
 
 def write_text(path: Path, content: str) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(content, encoding="utf-8")
+    atomic_write_text(path, content)
 
 
 def main() -> int:
@@ -716,14 +809,17 @@ def main() -> int:
     loaded_ledgers: list[dict[str, Any]] = []
     if args.ledgers:
         if args.ledgers.is_file():
-            payload = load_json(args.ledgers)
-            if payload:
-                loaded_ledgers.append(payload)
+            ledger_paths = [args.ledgers]
         elif args.ledgers.is_dir():
-            for f in sorted(args.ledgers.glob("*.json")):
-                payload = load_json(f)
-                if payload:
-                    loaded_ledgers.append(payload)
+            ledger_paths = sorted(args.ledgers.glob("*.json"))
+        else:
+            ledger_paths = []
+        loaded_ledgers, skipped_ledgers = load_ledger_payloads(ledger_paths)
+        if skipped_ledgers:
+            ledger_notes.append(
+                "skipped corrupt/unreadable ledger files (partial success): "
+                + ", ".join(skipped_ledgers)
+            )
         if loaded_ledgers:
             items.extend(build_acquisition_items(loaded_ledgers))
         else:

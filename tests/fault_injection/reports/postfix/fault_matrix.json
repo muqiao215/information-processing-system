@@ -1,0 +1,343 @@
+{
+  "fixed": [
+    {
+      "category": "1_duplicate_article",
+      "expectation": "3 duplicate entries collapse to exactly 1 pack item",
+      "observed": "pack items with title: 1",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "2_same_title_diff_content",
+      "expectation": "2 items share title but stay distinct (different item_id and body)",
+      "observed": "items=2 distinct_ids=True distinct_bodies=True",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "3_same_content_diff_url",
+      "expectation": "identical body at two URLs merges to 1 item with alias provenance",
+      "observed": "items=1 alias_recorded=True",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "4_content_update",
+      "expectation": "epoch-dependent body served; see update phase for ID stability",
+      "observed": "items=1; full semantics in update phase rows",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "5a_http_404",
+      "expectation": "HTTP error classified per-code, cascade exhausts, nothing promoted",
+      "observed": "ledger=attempted attempt_statuses=['http_404']",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "5b_http_429",
+      "expectation": "HTTP error classified per-code, cascade exhausts, nothing promoted",
+      "observed": "ledger=attempted attempt_statuses=['http_429']",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "5c_http_500",
+      "expectation": "HTTP error classified per-code, cascade exhausts, nothing promoted",
+      "observed": "ledger=attempted attempt_statuses=['http_500']",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "6_timeout",
+      "expectation": "attempt marked timeout, cascade exhausts, nothing promoted",
+      "observed": "ledger=attempted attempt_statuses=['timeout']",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "7_garbled_bytes",
+      "expectation": "GBK bytes declared utf-8 -> replacement-char wall -> rejected, not promoted",
+      "observed": "promoted_items=0 rejected_detail=['invalid_content:mojibake_replacement_ratio_0.798', 'invalid_content:mojibake_replacement_ratio_0.798']",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "8_truncated_html",
+      "expectation": "syntactically truncated HTML is accepted as-is (no HTML parser in this layer); documented risk, content passed through verbatim",
+      "observed": "promoted_items=1",
+      "verdict": "DOC",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "9_incomplete_read",
+      "expectation": "declared Content-Length > body -> IncompleteRead -> error, nothing promoted",
+      "observed": "statuses=['error'] incomplete_detected=True",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "10_empty_body",
+      "expectation": "whitespace-only body rejected by content validation, nothing promoted",
+      "observed": "rejected_detail=['invalid_content:empty_content', 'invalid_content:empty_content']",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "11_wrong_mime",
+      "expectation": "binary PNG on article URL -> detected as binary/mojibake -> rejected",
+      "observed": "promoted_items=0 rejected_detail=['invalid_content:mojibake_replacement_ratio_0.125', 'invalid_content:mojibake_replacement_ratio_0.125']",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "12_very_long_body",
+      "expectation": "5MB body truncated at fetch cap, truncation surfaced via end-of-content marker",
+      "observed": "promoted=1 truncation_marked=True",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "13_conflicting_sources",
+      "expectation": "same canonical URL, contradictory claims -> merged item keeps both citations, both texts, and raises a conflict flag",
+      "observed": "items=1 observed_sources=['follow-builders', 'daily-news-summary'] citations=2 both_claims_kept=True conflict_flag=True",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "14_recipe_coverage_control",
+      "expectation": "control: arXiv and GitHub tasks promoted via their dedicated recipes",
+      "observed": "arxiv_first_adapter=arxiv_abstract github_first_adapter=direct_raw",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    },
+    {
+      "category": "15_cross_cutting_invariants",
+      "expectation": "pack shape, unique ids, citations, canonical urls, ledger integrity",
+      "observed": "item_count=10 corrupt_ledgers=[]",
+      "verdict": "PASS",
+      "meta": "acq=9.4s pack=0.2s rc=0/0"
+    }
+  ],
+  "kill": [
+    {
+      "trial": "before_task_early",
+      "stage": "acquisition",
+      "kill": {
+        "mode": "checkpoint",
+        "name": "before_task",
+        "index": 5
+      },
+      "killed_confirmed": true,
+      "recovered": true,
+      "violations": [],
+      "normalized_diffs": [],
+      "notes": [],
+      "fetch": {
+        "reference_total": 62,
+        "after_kill": 4,
+        "rerun_extra": 58
+      }
+    },
+    {
+      "trial": "before_task_late",
+      "stage": "acquisition",
+      "kill": {
+        "mode": "checkpoint",
+        "name": "before_task",
+        "index": 18
+      },
+      "killed_confirmed": true,
+      "recovered": true,
+      "violations": [],
+      "normalized_diffs": [],
+      "notes": [],
+      "fetch": {
+        "reference_total": 62,
+        "after_kill": 57,
+        "rerun_extra": 53
+      }
+    },
+    {
+      "trial": "after_ledger_3",
+      "stage": "acquisition",
+      "kill": {
+        "mode": "checkpoint",
+        "name": "after_ledger",
+        "index": 3
+      },
+      "killed_confirmed": true,
+      "recovered": true,
+      "violations": [],
+      "normalized_diffs": [],
+      "notes": [],
+      "fetch": {
+        "reference_total": 62,
+        "after_kill": 3,
+        "rerun_extra": 59
+      }
+    },
+    {
+      "trial": "after_ledger_12",
+      "stage": "acquisition",
+      "kill": {
+        "mode": "checkpoint",
+        "name": "after_ledger",
+        "index": 12
+      },
+      "killed_confirmed": true,
+      "recovered": true,
+      "violations": [],
+      "normalized_diffs": [],
+      "notes": [],
+      "fetch": {
+        "reference_total": 62,
+        "after_kill": 32,
+        "rerun_extra": 54
+      }
+    },
+    {
+      "trial": "mid_ledger_write_3",
+      "stage": "acquisition",
+      "kill": {
+        "mode": "checkpoint",
+        "name": "mid_ledger_write",
+        "index": 3
+      },
+      "killed_confirmed": true,
+      "recovered": true,
+      "violations": [],
+      "normalized_diffs": [],
+      "notes": [],
+      "fetch": {
+        "reference_total": 62,
+        "after_kill": 3,
+        "rerun_extra": 60
+      }
+    },
+    {
+      "trial": "timer_acq_s1",
+      "stage": "acquisition",
+      "kill": {
+        "mode": "timer",
+        "delay": 2.0
+      },
+      "killed_confirmed": true,
+      "recovered": true,
+      "violations": [],
+      "normalized_diffs": [],
+      "notes": [],
+      "fetch": {
+        "reference_total": 62,
+        "after_kill": 28,
+        "rerun_extra": 54
+      }
+    },
+    {
+      "trial": "timer_acq_s2",
+      "stage": "acquisition",
+      "kill": {
+        "mode": "timer",
+        "delay": 4.5
+      },
+      "killed_confirmed": true,
+      "recovered": true,
+      "violations": [],
+      "normalized_diffs": [],
+      "notes": [],
+      "fetch": {
+        "reference_total": 62,
+        "after_kill": 29,
+        "rerun_extra": 54
+      }
+    },
+    {
+      "trial": "timer_acq_s3",
+      "stage": "acquisition",
+      "kill": {
+        "mode": "timer",
+        "delay": 7.5
+      },
+      "killed_confirmed": true,
+      "recovered": true,
+      "violations": [],
+      "normalized_diffs": [],
+      "notes": [],
+      "fetch": {
+        "reference_total": 62,
+        "after_kill": 31,
+        "rerun_extra": 54
+      }
+    },
+    {
+      "trial": "pack_before_write_2",
+      "stage": "pack",
+      "kill": {
+        "mode": "checkpoint",
+        "name": "pack_before_write",
+        "index": 2
+      },
+      "killed_confirmed": true,
+      "recovered": true,
+      "violations": [],
+      "normalized_diffs": [],
+      "notes": []
+    },
+    {
+      "trial": "pack_mid_write_4",
+      "stage": "pack",
+      "kill": {
+        "mode": "checkpoint",
+        "name": "pack_mid_write",
+        "index": 4
+      },
+      "killed_confirmed": true,
+      "recovered": true,
+      "violations": [],
+      "normalized_diffs": [],
+      "notes": []
+    },
+    {
+      "trial": "timer_pack_s4",
+      "stage": "pack",
+      "kill": {
+        "mode": "timer",
+        "delay": 0.05
+      },
+      "killed_confirmed": true,
+      "recovered": true,
+      "violations": [],
+      "normalized_diffs": [],
+      "notes": []
+    },
+    {
+      "trial": "plant_corrupt_ledger",
+      "stage": "special",
+      "kill": null,
+      "killed_confirmed": false,
+      "recovered": true,
+      "violations": [],
+      "normalized_diffs": [],
+      "notes": [
+        "planted corrupt JSON into acq_dup-exact-a.json"
+      ],
+      "pack_with_corrupt_ledger_rc": 0
+    }
+  ],
+  "update": [
+    {
+      "trial": "content_update_epoch_1_to_2",
+      "title_same": true,
+      "item_id_v1": "webpage:2c0fae3371a6c7a4",
+      "item_id_v2": "webpage:2c0fae3371a6c7a4",
+      "item_id_resume": "webpage:2c0fae3371a6c7a4",
+      "content_v1_is_epoch1": true,
+      "content_v2_is_epoch2": true,
+      "resume_content_is_stale_v1": true,
+      "v2_item_count": 10,
+      "v1_item_count": 10,
+      "violations": []
+    }
+  ]
+}

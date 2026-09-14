@@ -1,0 +1,229 @@
+{
+  "rounds": [
+    "/tmp/fault_ws_postfix/stability_round_1",
+    "/tmp/fault_ws_postfix/stability_round_2",
+    "/tmp/fault_ws_postfix/stability_round_3"
+  ],
+  "raw_pair_diffs": [
+    {
+      "pair": "round_1_vs_round_2",
+      "diff_count": 27,
+      "paths": [
+        "$.fallback_markdown_path",
+        "$.generated_at",
+        "$.input_manifests.acquisition-orchestrator.path",
+        "$.input_manifests.arxiv-llm-memory-discovery.path",
+        "$.input_manifests.builderpulse-opportunity-radar.path",
+        "$.input_manifests.follow-builders.path",
+        "$.items[0].freshness.generated_at",
+        "$.items[0].preprocess.generated_at",
+        "$.items[1].freshness.generated_at",
+        "$.items[1].preprocess.generated_at",
+        "$.items[2].freshness.generated_at",
+        "$.items[2].preprocess.generated_at",
+        "$.items[3].freshness.generated_at",
+        "$.items[3].preprocess.generated_at",
+        "$.items[4].freshness.generated_at",
+        "$.items[4].preprocess.generated_at",
+        "$.items[5].freshness.generated_at",
+        "$.items[5].preprocess.generated_at",
+        "$.items[6].freshness.generated_at",
+        "$.items[6].preprocess.generated_at",
+        "$.items[7].freshness.generated_at",
+        "$.items[7].preprocess.generated_at",
+        "$.items[8].freshness.generated_at",
+        "$.items[8].preprocess.generated_at",
+        "$.items[9].freshness.generated_at",
+        "$.items[9].preprocess.generated_at",
+        "$.preprocessing_summary.generated_at"
+      ],
+      "samples": [
+        {
+          "path": "$.fallback_markdown_path",
+          "left": "/tmp/fault_ws_postfix/stability_round_1/bundles/2026-09-15/knowledge_pack.md",
+          "right": "/tmp/fault_ws_postfix/stability_round_2/bundles/2026-09-15/knowledge_pack.md"
+        },
+        {
+          "path": "$.generated_at",
+          "left": "2026-09-15T06:11:32.521726+08:00",
+          "right": "2026-09-15T06:11:42.110357+08:00"
+        },
+        {
+          "path": "$.input_manifests.acquisition-orchestrator.path",
+          "left": "/tmp/fault_ws_postfix/stability_round_1/ledgers",
+          "right": "/tmp/fault_ws_postfix/stability_round_2/ledgers"
+        },
+        {
+          "path": "$.input_manifests.arxiv-llm-memory-discovery.path",
+          "left": "/tmp/fault_ws_postfix/stability_round_1/missing_arxiv.json",
+          "right": "/tmp/fault_ws_postfix/stability_round_2/missing_arxiv.json"
+        },
+        {
+          "path": "$.input_manifests.builderpulse-opportunity-radar.path",
+          "left": "/tmp/fault_ws_postfix/stability_round_1/missing_builderpulse.json",
+          "right": "/tmp/fault_ws_postfix/stability_round_2/missing_builderpulse.json"
+        },
+        {
+          "path": "$.input_manifests.follow-builders.path",
+          "left": "/tmp/fault_ws_postfix/stability_round_1/missing_follow_builders.json",
+          "right": "/tmp/fault_ws_postfix/stability_round_2/missing_follow_builders.json"
+        },
+        {
+          "path": "$.items[0].freshness.generated_at",
+          "left": "2026-09-14T22:11:32.382737Z",
+          "right": "2026-09-14T22:11:42.016288Z"
+        },
+        {
+          "path": "$.items[0].preprocess.generated_at",
+          "left": "2026-09-15T06:11:32.521726+08:00",
+          "right": "2026-09-15T06:11:42.110357+08:00"
+        },
+        {
+          "path": "$.items[1].freshness.generated_at",
+          "left": "2026-09-14T22:11:32.369430Z",
+          "right": "2026-09-14T22:11:41.999793Z"
+        },
+        {
+          "path": "$.items[1].preprocess.generated_at",
+          "left": "2026-09-15T06:11:32.521726+08:00",
+          "right": "2026-09-15T06:11:42.110357+08:00"
+        },
+        {
+          "path": "$.items[2].freshness.generated_at",
+          "left": "2026-09-14T22:11:23.071185Z",
+          "right": "2026-09-14T22:11:32.717761Z"
+        },
+        {
+          "path": "$.items[2].preprocess.generated_at",
+          "left": "2026-09-15T06:11:32.521726+08:00",
+          "right": "2026-09-15T06:11:42.110357+08:00"
+        }
+      ]
+    },
+    {
+      "pair": "round_2_vs_round_3",
+      "diff_count": 27,
+      "paths": [
+        "$.fallback_markdown_path",
+        "$.generated_at",
+        "$.input_manifests.acquisition-orchestrator.path",
+        "$.input_manifests.arxiv-llm-memory-discovery.path",
+        "$.input_manifests.builderpulse-opportunity-radar.path",
+        "$.input_manifests.follow-builders.path",
+        "$.items[0].freshness.generated_at",
+        "$.items[0].preprocess.generated_at",
+        "$.items[1].freshness.generated_at",
+        "$.items[1].preprocess.generated_at",
+        "$.items[2].freshness.generated_at",
+        "$.items[2].preprocess.generated_at",
+        "$.items[3].freshness.generated_at",
+        "$.items[3].preprocess.generated_at",
+        "$.items[4].freshness.generated_at",
+        "$.items[4].preprocess.generated_at",
+        "$.items[5].freshness.generated_at",
+        "$.items[5].preprocess.generated_at",
+        "$.items[6].freshness.generated_at",
+        "$.items[6].preprocess.generated_at",
+        "$.items[7].freshness.generated_at",
+        "$.items[7].preprocess.generated_at",
+        "$.items[8].freshness.generated_at",
+        "$.items[8].preprocess.generated_at",
+        "$.items[9].freshness.generated_at",
+        "$.items[9].preprocess.generated_at",
+        "$.preprocessing_summary.generated_at"
+      ],
+      "samples": [
+        {
+          "path": "$.fallback_markdown_path",
+          "left": "/tmp/fault_ws_postfix/stability_round_2/bundles/2026-09-15/knowledge_pack.md",
+          "right": "/tmp/fault_ws_postfix/stability_round_3/bundles/2026-09-15/knowledge_pack.md"
+        },
+        {
+          "path": "$.generated_at",
+          "left": "2026-09-15T06:11:42.110357+08:00",
+          "right": "2026-09-15T06:11:51.664167+08:00"
+        },
+        {
+          "path": "$.input_manifests.acquisition-orchestrator.path",
+          "left": "/tmp/fault_ws_postfix/stability_round_2/ledgers",
+          "right": "/tmp/fault_ws_postfix/stability_round_3/ledgers"
+        },
+        {
+          "path": "$.input_manifests.arxiv-llm-memory-discovery.path",
+          "left": "/tmp/fault_ws_postfix/stability_round_2/missing_arxiv.json",
+          "right": "/tmp/fault_ws_postfix/stability_round_3/missing_arxiv.json"
+        },
+        {
+          "path": "$.input_manifests.builderpulse-opportunity-radar.path",
+          "left": "/tmp/fault_ws_postfix/stability_round_2/missing_builderpulse.json",
+          "right": "/tmp/fault_ws_postfix/stability_round_3/missing_builderpulse.json"
+        },
+        {
+          "path": "$.input_manifests.follow-builders.path",
+          "left": "/tmp/fault_ws_postfix/stability_round_2/missing_follow_builders.json",
+          "right": "/tmp/fault_ws_postfix/stability_round_3/missing_follow_builders.json"
+        },
+        {
+          "path": "$.items[0].freshness.generated_at",
+          "left": "2026-09-14T22:11:42.016288Z",
+          "right": "2026-09-14T22:11:51.549775Z"
+        },
+        {
+          "path": "$.items[0].preprocess.generated_at",
+          "left": "2026-09-15T06:11:42.110357+08:00",
+          "right": "2026-09-15T06:11:51.664167+08:00"
+        },
+        {
+          "path": "$.items[1].freshness.generated_at",
+          "left": "2026-09-14T22:11:41.999793Z",
+          "right": "2026-09-14T22:11:51.536302Z"
+        },
+        {
+          "path": "$.items[1].preprocess.generated_at",
+          "left": "2026-09-15T06:11:42.110357+08:00",
+          "right": "2026-09-15T06:11:51.664167+08:00"
+        },
+        {
+          "path": "$.items[2].freshness.generated_at",
+          "left": "2026-09-14T22:11:32.717761Z",
+          "right": "2026-09-14T22:11:42.262119Z"
+        },
+        {
+          "path": "$.items[2].preprocess.generated_at",
+          "left": "2026-09-15T06:11:42.110357+08:00",
+          "right": "2026-09-15T06:11:51.664167+08:00"
+        }
+      ]
+    }
+  ],
+  "normalized_pair_diffs": [
+    {
+      "pair": "round_1_vs_round_2",
+      "diff_count": 0,
+      "diffs": []
+    },
+    {
+      "pair": "round_2_vs_round_3",
+      "diff_count": 0,
+      "diffs": []
+    }
+  ],
+  "vs_reference": [
+    {
+      "round": 1,
+      "diff_count": 0,
+      "diffs": []
+    },
+    {
+      "round": 2,
+      "diff_count": 0,
+      "diffs": []
+    },
+    {
+      "round": 3,
+      "diff_count": 0,
+      "diffs": []
+    }
+  ],
+  "violations": []
+}

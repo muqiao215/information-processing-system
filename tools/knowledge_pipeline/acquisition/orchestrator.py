@@ -8,6 +8,7 @@ from pathlib import Path
 from .adapters import FetchFn
 from .models import AcquisitionTask, PromotedItem, RunLedger, SourceCandidate, stable_digest
 from .recipes import Registry, default_registry
+from tools.knowledge_pipeline.fs_utils import atomic_write_text
 
 
 class Orchestrator:
@@ -109,6 +110,6 @@ class Orchestrator:
 
             if ledger_file is not None:
                 payload_str = json.dumps(ledger.to_dict(), ensure_ascii=False, indent=2)
-                ledger_file.write_text(payload_str + "\n", encoding="utf-8")
+                atomic_write_text(ledger_file, payload_str + "\n")
 
         return ledgers

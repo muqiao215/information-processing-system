@@ -20,6 +20,29 @@ USER_AGENT = (
 MAX_SOURCE_CHARS = 180_000
 DEFAULT_TIMEOUT_SECONDS = 35
 
+try:
+    from tools.knowledge_pipeline.fs_utils import atomic_write_text
+except ImportError:  # loaded standalone via file path without repo root on sys.path
+    import os as _os
+
+    def atomic_write_text(path, data, encoding="utf-8"):
+        path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp = path.with_name(f"{path.name}.tmp{_os.getpid()}")
+        try:
+            with open(tmp, "w", encoding=encoding) as fh:
+                fh.write(data)
+                fh.flush()
+                _os.fsync(fh.fileno())
+            _os.replace(tmp, path)
+        except BaseException:
+            try:
+                tmp.unlink()
+            except OSError:
+                pass
+            raise
+        return path
+
 
 @dataclass
 class FetchAttempt:
@@ -357,9 +380,8 @@ def localize_item(
         status = "fallback_localized"
 
     output_path = item_cache_path(cache_dir, item)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
     markdown = render_local_markdown(item, fetched_text, method or "unknown", fetched_via, generated_at)
-    output_path.write_text(markdown, encoding="utf-8")
+    atomic_write_text(output_path, markdown)
     return PreprocessResult(
         status=status,
         method=method,

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import re
 from dataclasses import dataclass, field
+from http.client import IncompleteRead
 from typing import Any, Callable
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode, urlparse, urlunparse
@@ -17,9 +18,11 @@ DEFAULT_USER_AGENT = (
     "(KHTML, like Gecko) Chrome/122.0 Safari/537.36"
 )
 
+FETCH_CHAR_CAP = 200_000
+
 
 def is_valid_content(content: str | None, min_chars: int = 40) -> tuple[bool, str]:
-    """Validate acquired content against missing body and low signal markers."""
+    """Validate acquired content against missing body, low signal, mojibake, and binary payloads."""
     if content is None:
         return False, "null_content"
     stripped = content.strip()
@@ -42,6 +45,18 @@ def is_valid_content(content: str | None, min_chars: int = 40) -> tuple[bool, st
         if marker in lowered and len(stripped) < 250:
             return False, f"error_marker:{marker}"
 
+    # Mojibake / binary detection: a text payload decoded with errors="replace"
+    # that contains a large share of U+FFFD, or heavy C0 control characters,
+    # is a misdeclared-charset or wrong-MIME payload, not usable content.
+    sample = stripped[:20000]
+    replacement_ratio = sample.count("\ufffd") / len(sample)
+    if replacement_ratio > 0.02:
+        return False, f"mojibake_replacement_ratio_{replacement_ratio:.3f}"
+    control_chars = sum(1 for ch in sample if ord(ch) < 32 and ch not in "\t\n\r")
+    control_ratio = control_chars / len(sample)
+    if control_ratio > 0.05:
+        return False, f"binary_control_char_ratio_{control_ratio:.3f}"
+
     return True, "ok"
 
 
@@ -50,14 +65,34 @@ def default_http_fetcher(
     headers: dict[str, str] | None = None,
     timeout_seconds: int = 30,
 ) -> str:
-    """Built-in HTTP fetcher with timeout and browser UA."""
+    """Built-in HTTP fetcher with timeout and browser UA.
+
+    Reads at most FETCH_CHAR_CAP + 1 chars: overflow is truncated and the
+    truncation is surfaced with an end-of-content marker; a response shorter
+    than its declared Content-Length raises IncompleteRead so transport-level
+    truncation is never silently accepted.
+    """
     req_headers = {"User-Agent": DEFAULT_USER_AGENT, "Accept": "*/*"}
     if headers:
         req_headers.update(headers)
     req = Request(url, headers=req_headers)
     with urlopen(req, timeout=timeout_seconds) as resp:
         charset = resp.headers.get_content_charset() or "utf-8"
-        return resp.read(200_000).decode(charset, errors="replace")
+        raw = resp.read(FETCH_CHAR_CAP + 1)
+        if len(raw) > FETCH_CHAR_CAP:
+            # More data exists than the cap allows: deliberate truncation.
+            text = raw[:FETCH_CHAR_CAP].decode(charset, errors="replace")
+            text += f"\n\n[acquisition_truncated: content exceeded {FETCH_CHAR_CAP} char fetch cap]"
+            return text
+        declared = resp.headers.get("Content-Length")
+        if declared:
+            try:
+                declared_length = int(declared)
+            except ValueError:
+                declared_length = None
+            if declared_length is not None and len(raw) < declared_length:
+                raise IncompleteRead(partial=raw, expected=declared_length)
+        return raw.decode(charset, errors="replace")
 
 
 def jina_reader_url(url: str) -> str:
@@ -152,6 +187,17 @@ class AcquisitionAdapter:
                 candidate_url=candidate.url,
                 request_url=request_url,
                 detail=f"TimeoutError:{exc}",
+                metadata={"mode": self.mode},
+            )
+            return attempt, None
+        except HTTPError as exc:
+            attempt = Attempt(
+                adapter=self.name,
+                status=f"http_{exc.code}",
+                candidate_id=candidate.candidate_id,
+                candidate_url=candidate.url,
+                request_url=request_url,
+                detail=f"HTTPError:{exc.code}:{exc.reason}",
                 metadata={"mode": self.mode},
             )
             return attempt, None
